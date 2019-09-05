@@ -1,0 +1,562 @@
+#!/usr/bin/env python3
+#!
+# mkdocs-auto
+#
+# TODO: One time program to setup the environment?
+#
+# Objective:
+# This program uses the Github hampug meetings repository for data.
+# It requires: git, mkdocs, mkdocs-exclude, mkdocs-material
+# It should be launched from a virtual environment.
+#
+# It performs the following:
+# NO: Creates a working directory (if it doesn't already exist)
+#   Off ~/ hampug-website
+# NO: Clones the hampug github repository meetings
+#   Off: ~/website/meetings/
+# YES: This program resides in:
+#   ~/hampug-website/meetings/
+#   Thus it is becomes part of the repository
+# NO:  But it is run from ~/hampug-website/ so the CWD is simplier to deal with
+#
+# Creates the mkdocs.yml that resides in ~/hampug-website/
+#
+import sys
+if sys.version_info[:2] < (3, 5):
+    sys.exit("Please use Python 3.5 or higher.")
+if sys.platform != 'linux':
+    sys.exit("Please use Linux.")
+
+import os
+import glob  # Requires V3.5+
+
+# Debug Flag: -d or --debug.
+DEBUG = False
+if "-d" in sys.argv or "--debug" in sys.argv:
+    DEBUG = True
+
+VERSION = str(0.1)
+REPO_DIR = "meetings"
+ORG = "Hamilton Python Users Group"
+GITHUB = "https://github.com/hampug/"
+URL = "https://hampug/github.io/meetings/"
+SITE = "site"
+# The next level up directory can have any name.
+# TOP_DIR = "hampug-website"
+
+# Force launching the program from repo directory.
+# Thus level above can have any name. It will be accessed by reference.
+CWD = os.getcwd()
+cwd_list = CWD.split(os.sep)
+if DEBUG: print("cwd:", CWD, "cwd_list[-1]:", cwd_list[-1])
+if cwd_list[-1] != REPO_DIR:
+    sys.exit("Program launched from: {}. \n"
+             "This program should reside and be launched this from the\n" 
+             "'{}' repository folder.".format(CWD, REPO_DIR))
+
+# Concept: Directory constants/ variables will end with the os seperator.
+cwd_list.pop()
+TOP_DIR = os.sep.join(cwd_list) + os.sep
+CWD = CWD + os.sep
+if DEBUG: print("TOP_DIR:", TOP_DIR, "CWD:", CWD)
+
+
+# If mkdocs can not reference up a dir, then need to os.chdir()
+# Else in CWD is python program and mkdocs.yml. THe mkdocs.yml needs to
+# have a site or docs in the TOP_DIR. Files created in TOP_DIR can be
+# deleted by this program. mkdocs.yml and docs/
+
+# Test if git exists
+if glob.glob(CWD + ".git") == []:
+    sys.exit("This folder, {}, is not a .git repository.".format(CWD))
+
+
+#print(INTRO)
+
+print(sys.argv)
+print(os.getcwd())  # /home/ian/hampug-meetings
+print(sys.argv[0])  # meetings/hampug-mkdocs
+print(os.sep)  # /
+
+#CWD = os.getcwd() + os.sep
+#MEETING_DIR = CWD + REPO_DIR + os.sep
+
+# Launch program inside of the repository meetings.
+# os.chdir("..") or similar to hampug-meetings
+#>>> os.getcwd()
+#'/home/ian/hampug-meetings'
+#>>> os.chdir("..")
+#>>> os.getcwd()
+#'/home/ian'
+
+def get_readme():
+    # https://www.mkyong.com/python/python-how-to-list-all-files-in-a-directory/
+    # https://docs.python.org/3/library/os.html#os.walk 
+
+    import os
+
+    path = CWD #'/home/ian/venv7'
+
+    files = []
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(path):
+        for file in f:
+            #if '.txt' in file:
+                #files.append(os.path.join(r, file))
+            files.append(os.path.join(r, file))
+    for f in files:
+        print(f)
+
+
+
+def get_file_dict(path):
+    """
+    Files must reside off ~/.../meetings/...
+    The files must have an extension.
+    The absolute *path* is passed to this function. 
+
+    Return a dictionary with each path as a key containing a list of files.
+
+    The absolute paths are the keys. Another function will remove the prefixes 
+    of the absolute paths when the navigation tree is built
+
+    Purge from dictionary any key for a folder that has no files.
+
+    Uses: glob module
+    Requires: Python 3.5 or better
+
+    # https://www.mkyong.com/python/python-how-to-list-all-files-in-a-directory/ 
+    # https://docs.python.org/3/library/glob.html
+    """
+    #path = '/home/ian/venv7/'  # Requires final /
+    #path = '/home/ian/hampug-meetings/'
+
+    file_dict = {}
+
+    # Build a dictionary of an empty list, where key is a folder path.        
+    if DEBUG: print("Locating folders, build dictionary keys with empty list")
+    folders = [f for f in glob.glob(path + "**/", recursive=True)]
+    for folder in sorted(folders):
+        if DEBUG: print(folder)
+        file_dict[folder] = []
+
+    if DEBUG: print(file_dict) # , '/home/ian/venv7/share/python-wheels/': []}
+    if DEBUG: print("len(file_dict): ", len(file_dict))  # len(file_dict) : 495
+
+
+    # Use the file list to add filenames to the dictionary
+    if DEBUG: print("Adding files to dictionary")
+    if DEBUG: print(glob.glob(path + "**/*.*", recursive=True))
+    # File needs an extension to be recognised. i.e. glob *.*
+    file_list = glob.glob(path + "**/*.*", recursive=True)
+    for file in file_list:
+        file_split = file.split("/")
+        file_name = file_split.pop()
+        key = "/".join(file_split)
+        key = key + "/"
+        if DEBUG: print(key, file_name)
+        file_dict[key].append(file_name)
+
+    if DEBUG: print(file_dict)
+    if DEBUG: print("len(file_dict): ", len(file_dict))
+
+    # Remove keys for any folders that are empty.
+    # Two stages as can not remove keys when iterating over a dictionary
+    remove_list = []
+    for key, value in file_dict.items():
+        if value == []:
+            remove_list.append(key)
+
+    if DEBUG: print(remove_list)
+
+    for key in remove_list:
+        file_dict.pop(key)
+
+    if DEBUG: print("len(file_dict): ", len(file_dict))
+
+    for key, value in file_dict.items():
+        if DEBUG: print(key, len(value))
+
+    return file_dict
+
+#def build_nav(file_dict, filter_prefix):
+def build_nav(file_dict, filter_prefix = os.getcwd()):
+    """
+    Use the file_dict to build the mkdocs.yml nav: paths
+    Files in the top level are changed to use their file name
+    Except that README.md in top level will become index.html 
+
+    """
+    #if filter_prefix == "":
+    #    filter_prefix = os.getcwd()
+
+    if DEBUG: print("filter_prefix: ", filter_prefix)
+    if DEBUG: print("len(file_dict): ", len(file_dict))
+    for key, file_name_list in sorted(file_dict.items()):
+
+
+
+        key_short = key.replace(filter_prefix,'')
+        for file_name in file_name_list: 
+            if file_name == "README.md":
+                # Check first line of README.md for a Title
+                with open(key + file_name) as f:
+                    first_line = f.readline().strip()
+                    first_line_list = first_line.split(" ")
+                    print(first_line_list[1])  # About
+        
+
+
+            path = key_short + file_name
+
+        #y = x.replace('.good','')
+        print(key_short, path) # /meetings/ /meetings/README.md
+
+
+    #     path = '/home/ian/venv7/' 
+    # The initial path is 3 x folders: Remove the first three folders
+    # from the key
+    #file_split.pop(0)
+    #file_split.pop(0)
+    #file_split.pop(0)
+
+
+
+def get_file():
+
+    from os import listdir
+    from os.path import isfile, join
+     
+    dirName = "/home/ian/venv7/" #CWD #"/home/ian"  #CWD #"/home/ian/hampug-meetings" #MEETING_DIR
+    print(dirName)
+    print(listdir(dirName))
+
+    # Get only filenames
+    fileNames = [f for f in listdir(dirName) if isfile(join(dirName, f))]     
+    print (fileNames)
+
+def create_data():
+    # In the meetings folder create mock data
+    pass
+        
+
+def program_info():
+    """
+    Provide some information on program launch.
+    """
+    print("Python3 program: {}".format(sys.argv[0]))
+    print("Version: {}".format(VERSION))
+    print("Launched from: {}".format(CWD))
+    print("Contains .git repository: {}".format(os.path.isdir(CWD + ".git")))
+
+
+    #dir_list = CWD.split("/")
+    # print(len(dir_list), dir_list, dir_list[-2])
+    # 5 ['', 'home', 'ian', 'hampug-meetings', ''] hampug-meetings
+    #if dir_list[-2] != LAUNCH_DIR:
+    #    sys.exit("Please run this python program from: {}".format(LAUNCH_DIR))
+    #print("Meetings respository: {}".format(MEETING_DIR))
+
+    #print(os.path.isfile("/home/ian/hampug-meetings/meetings/mkdocs-auto"))
+    #print(os.path.isdir("/home/ian/hampug-meetings/meetings/.git"))
+
+def help():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(INTRO)
+
+
+def main():
+    help()
+
+    program_info()
+    #get_file()
+    #get_readme()
+    #file_dict = get_file_dict('/home/ian/venv7/')
+    sys.exit()
+
+    file_dict = get_file_dict('/home/ian/hampug-meetings/')
+
+    for key, value in file_dict.items():
+        if DEBUG: print(key, len(value))
+
+    #get_glob_short_path()
+    filter_prefix = "/home/ian/"
+    filter_prefix = '/home/ian/hampug-meetings/'
+    #filter_prefix = '/home/ian/venv7/'  
+    build_nav(file_dict, filter_prefix)
+    #build_nav(file_dict)
+
+
+    pass
+
+# Stuff long-winded constants here...
+INTRO = """
+Welcome to the program '{}' version {}.
+This program is for creating a Github project website for:
+{}.
+Their Github account is: {}
+The specific repository is: '{}'.
+The created website will have the URL: {}
+
+It is assumed that the current document layout on Github is in a sorted 
+fashion. The website navigation will be based on a sort of the Github
+repository. 
+
+A requirement is that all markdown documents commence the first
+line with a single hash, '#', and space, followed by a brief title. This
+title is used in the website navigation.
+
+This program assumes that you have a local git repository called '{}'
+and that this program is being run from that repository. For example your
+local folders may be ~/hampug-website/meetings/
+
+Prerequisites:
+0. This program is already in the top level Github meetings repository.
+1. Run this program from a virtual environment which includes:
+    o Python3.5 or higher.
+    o mkdocs version 1.0.4 or higher.
+    o mkdocs-exclude 1.0.2 or higher. Plugin to exclude files or folders.
+    o mkdocs-material 4.4.2 or higher. Theme plugin
+    o git version 2.17.1 or higher.
+2. In the {} Github repository {} 'Clone or Download' the repository so that 
+    it becomes one of your Github repositories.
+3. Create a local folder. E.g. $ mkdir github-website
+4. Change directory to that folder. E.g. $ cd github-website
+5. Clone Github to the local directory
+    $ git cloan https://github.com/MY_GITHUB_ACCOUNT/{}.git
+    This will create the folder {} which will be a git repository with a .git
+    folder off it.
+6. Set default to meetings. E.g. cd meetings.
+7. Run this program. From this meetings directory.
+8. The mkdocs.yml file and the /docs folder containing the website are placed
+    into the directory above meetings.
+9. Execute mkdocs commands from this directory as follows:
+    (venv) ian:~/website/meetings$ cd .. ; mkdocs build ; cd meetings
+    INFO    -  Cleaning site directory 
+    INFO    -  Building documentation to directory: /home/ian/meetings/docs 
+
+The program will do the following: 
+1. Review the '{}' repository and locate all markdown files.
+2. Check all markdown files meet the 'first line' requirement.
+3. Build the nav: structure.
+4. Build mkdocs.yml which will be placed folder up one level in: {}.
+5. Up one level create the folder for the website: {}
+6. Second line requirment is "Links: github" 
+7. Run mkdocs to build the website
+8. Run rsync to move the website into the respository off the /docs folder
+
+When the program terminates you may then:
+1. Test the website with mkdocs serve
+2. Push the .git repository to Github. The changes will be the /docs folder.
+3. Test the updated website at: {}
+""".format(sys.argv[0], VERSION, ORG, GITHUB, REPO_DIR, URL, REPO_DIR, 
+GITHUB, REPO_DIR, REPO_DIR, REPO_DIR, REPO_DIR, TOP_DIR, SITE, URL)
+
+
+if __name__=="__main__":
+    main()
+
+
+"""
+Notes:
+https://docs.python.org/3/library/glob.html
+>>> import glob
+>>> dir(glob)
+['__all__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', '_glob0', '_glob1', '_glob2', '_iglob', '_ishidden', '_isrecursive', '_iterdir', '_rlistdir', 'escape', 'fnmatch', 'glob', 'glob0', 'glob1', 'has_magic', 'iglob', 'magic_check', 'magic_check_bytes', 'os', 're']
+>>> 
+
+If recursive is true, the pattern “**” will match any files and zero or more directories and subdirectories. If the pattern is followed by an os.sep, only directories and subdirectories match.
+Changed in version 3.5: Support for recursive globs using “**”.
+
+
+
+https://stackoverflow.com/questions/3964681/find-all-files-in-a-directory-with-extension-txt-in-python
+
+You can use glob:
+
+import glob, os
+os.chdir("/mydir")
+for file in glob.glob("*.txt"):
+    print(file)
+
+or simply os.listdir:
+
+import os
+for file in os.listdir("/mydir"):
+    if file.endswith(".txt"):
+        print(os.path.join("/mydir", file))
+
+or if you want to traverse directory, use os.walk:
+
+import os
+for root, dirs, files in os.walk("/mydir"):
+    for file in files:
+        if file.endswith(".txt"):
+             print(os.path.join(root, file))
+
+
+for file in [f for f in os.listdir('/mydir') if f.endswith('.txt')]:
+
+
+>>> a["test"] = None
+>>> a
+{'test': None}
+>>> type a[test]
+  File "<stdin>", line 1
+    type a[test]
+         ^
+SyntaxError: invalid syntax
+>>> type a["test"]
+  File "<stdin>", line 1
+    type a["test"]
+         ^
+SyntaxError: invalid syntax
+>>> type(a["test"])
+<class 'NoneType'>
+
+{
+'/home/ian/venv7/': [
+    'pyvenv.cfg'
+    ], 
+'/home/ian/venv7/bin/': [
+    'activate.fish', 
+    'activate.csh', 
+    'pip3.6', 
+...
+
+'/home/ian/venv7/share/': [
+    ], 
+'/home/ian/venv7/share/python-wheels/': [
+    'pip-9.0.1-py2.py3-none-any.whl', 
+    'webencodings-0.5-py2.py3-none-any.whl', 
+    'appdirs-1.4.3-py2.py3-none-any.whl', 
+    'pyparsing-2.2.0-py2.py3-none-any.whl', 
+    'certifi-2018.1.18-py2.py3-none-any.whl', 
+....
+    'CacheControl-0.11.7-py2.py3-none-any.whl', 
+    'distro-1.0.1-py2.py3-none-any.whl', 
+    'wheel-0.30.0-py2.py3-none-any.whl'
+    ]
+}
+
+
+    print("Files:")
+    print(glob.glob(path + "**/*.*", recursive=True))
+    file_list = glob.glob(path + "**/*.*", recursive=True)
+    for file in file_list:
+        print(file)
+
+=====
+
+def get_glob_short_path():
+    import glob
+    path = '/home/ian/venv7/'  # Requires final /
+    #path = '/home/ian/hampug-meetings/'
+
+    file_dict = {}
+    print("Folders:")
+    folders = [f for f in glob.glob(path + "**/", recursive=True)]
+    for folder in sorted(folders):
+        #print(folder)
+        folder_list = folder.split("/")
+        # Remove the '/home/ian/venv7/'
+        #for i in range(4):
+        #    folder_list.pop(0)
+        # mylist = mylist[2:-2] and del mylist[:2];del mylist[-2:]
+        # Do 4 x pop(0)'s
+        folder_list = folder_list[4:]    
+
+        folder = "/".join(folder_list)
+        #folder = folder + "/"
+        # Build a dictionary of empty lists
+        file_dict[folder] = []
+    print(file_dict) # 'share/': [], 'share/python-wheels/': []}
+    # was: # , '/home/ian/venv7/share/python-wheels/': []}
+    # key is suitable for going into mkdocs.yml
+    print("len(file_dict) :", len(file_dict))  # len(file_dict) : 495
+
+    for key, item in file_dict.items():
+        print(key, item)
+        #lib64/python3.6/site-packages/yaml/__pycache__/
+        #share/
+        #share/python-wheels/
+
+    print("Files:")
+    #print(glob.glob(path + "**/*.*", recursive=True))
+    file_list = glob.glob(path + "**/*.*", recursive=True)
+    for file in sorted(file_list):
+        file_split = file.split("/")
+        file_name = file_split.pop()
+        file_key = file_split[4:]  # Remove the prefix folders
+        key = "/".join(file_key)
+        key = key + "/"
+         
+        #print(key, file_name)
+        # With shortened names can not have a key of "/"
+        if key == "/":
+            print(key, file_name)  # / pyvenv.cfg
+
+
+        if key != "/":
+            file_dict[key].append(file_name)
+    #file_dict['share/python-wheels/'].append('x')
+    #file_dict['share/python-wheels/'].append(file_name)
+    #print(file_dict['share/python-wheels/'])
+
+    #print(file_dict)
+    #for key, item in file_dict.items():
+    #    print(key, item)
+    
+    #print(file_dict["/"])
+    
+#def get_glob():
+
+
+=====
+"""
+
+
+
+"""
+
+
+
+#files = [f for f in glob.glob(path + "**/*.txt", recursive=True)]
+files = [f for f in glob.glob(path + "**/*.*", recursive=True)]
+
+for f in files:
+    #print(f)
+    pass
+
+===
+
+(venv7) ian@X200:~$ cd knife1
+(venv7) ian@X200:~/knife1$ 
+(venv7) ian@X200:~/knife1$ 
+(venv7) ian@X200:~/knife1$ ls -la
+total 8
+drwxrwxr-x  2 ian ian 4096 Sep  5 17:19 .
+drwxr-xr-x 98 ian ian 4096 Sep  5 17:19 ..
+(venv7) ian@X200:~/knife1$ git clone https://github.com/irsbugs/Spoon-Knife.git
+Cloning into 'Spoon-Knife'...
+remote: Enumerating objects: 16, done.
+remote: Total 16 (delta 0), reused 0 (delta 0), pack-reused 16
+Unpacking objects: 100% (16/16), done.
+(venv7) ian@X200:~/knife1$ ls -lA
+total 4
+drwxrwxr-x 3 ian ian 4096 Sep  5 17:20 Spoon-Knife
+(venv7) ian@X200:~/knife1$ 
+
+
+drwxrwxr-x 3 ian ian 4096 Sep  5 17:20 Spoon-Knife
+(venv7) ian@X200:~/knife1$ ls -lA Spoon-Knife/
+total 16
+drwxrwxr-x 8 ian ian 4096 Sep  5 17:20 .git
+-rw-rw-r-- 1 ian ian  355 Sep  5 17:20 index.html
+-rw-rw-r-- 1 ian ian  780 Sep  5 17:20 README.md
+-rw-rw-r-- 1 ian ian  256 Sep  5 17:20 styles.css
+
+
+===
+"""
+
