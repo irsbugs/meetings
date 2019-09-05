@@ -4,8 +4,10 @@
 #
 # TODO: One time program to setup the environment?
 #
-# Objective:
+# Objectives:
 # This program uses the Github hampug meetings repository for data.
+# It resides in the top level of the meetings repository.
+# It must be launched from the local git meetings repository 
 # It requires: git, mkdocs, mkdocs-exclude, mkdocs-material
 # It should be launched from a virtual environment.
 #
@@ -15,7 +17,7 @@
 # NO: Clones the hampug github repository meetings
 #   Off: ~/website/meetings/
 # YES: This program resides in:
-#   ~/hampug-website/meetings/
+#   ~/.../meetings/
 #   Thus it is becomes part of the repository
 # NO:  But it is run from ~/hampug-website/ so the CWD is simplier to deal with
 #
@@ -169,6 +171,13 @@ def get_file_dict(path):
 
     if DEBUG: print(remove_list)
 
+    if DEBUG: 
+        print("/nRemove list - Empty folders:")
+        for key in remove_list:
+            print(key)
+
+    sys.exit()
+
     for key in remove_list:
         file_dict.pop(key)
 
@@ -272,12 +281,18 @@ def main():
     #get_file()
     #get_readme()
     #file_dict = get_file_dict('/home/ian/venv7/')
-    sys.exit()
 
-    file_dict = get_file_dict('/home/ian/hampug-meetings/')
+
+    # Get a dictionary of all files in 
+    file_dict = get_file_dict(CWD)
+    #file_dict = get_file_dict('/home/ian/hampug-meetings/')
 
     for key, value in file_dict.items():
         if DEBUG: print(key, len(value))
+
+    # len(file_dict):  147
+    # len(file_dict):  138  # 9 empty folders:
+    sys.exit()
 
     #get_glob_short_path()
     filter_prefix = "/home/ian/"
