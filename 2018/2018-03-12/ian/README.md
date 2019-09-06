@@ -1,11 +1,11 @@
-### Setting up Python on Windows x64
+# Setting up Python on Windows x64
 
 The Microsoft Windows Operating System currently ships without Python installed. 
 This presentation provides a step-by-step guide to installing Python onto a 
 Windows 7 (64-bit) platform. This guide should also be applicable for other 
 versions of Windows.
 
-#### The installation of Python provides: 
+## The installation of Python provides: 
 
 1. A terminal session window for running an interactive session of python.
 2. The IDLE Integrated Development Environment for Python.

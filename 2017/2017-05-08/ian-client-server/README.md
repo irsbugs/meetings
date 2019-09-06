@@ -1,4 +1,4 @@
-## Client Server Presentation
+# Client Server
 
 Although it might not be obvious, this presentation is about making a speedometer for a bicycle. This speedometer configuration is more conceptual than practical, as it would be rather difficult to ride a bike while looking at a monitor and using a keyboard and mouse. It is designed to introduce you to the client / server programming methodology and the python libraries pydbus, RPi.GPIO, and GTK+.
 

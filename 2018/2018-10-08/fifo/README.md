@@ -1,4 +1,6 @@
-### String data manipulation using list methods
+# String data manipulation
+
+String data manipulation using fifo list methods
 
 A Jupyter Notebook presentation to introduce string data manipulation using list methods.
 

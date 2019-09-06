@@ -1,5 +1,5 @@
-Python + LibreOffice
-====================
+# Python & LibreOffice
+
 
 Using Python in conjunction with LibreOffice.
 

@@ -1,5 +1,5 @@
-Quiz presentation
-=================
+# Quiz
+
 
 In the form of a quiz, this presentation is designed to highlight the number of
 lines of code involved in using sys.argv, argparse, and plac. It highlights the

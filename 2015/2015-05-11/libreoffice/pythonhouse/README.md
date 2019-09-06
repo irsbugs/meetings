@@ -1,5 +1,6 @@
+# UNO Bridge to LibreOffice
+
 Python Universal Network Object (UNO) Bridge to LibreOffice/OpenOffice
-======================================================================
 
 Presentation at Hamilton Python User Group Meeting on 11 May 2015.
 

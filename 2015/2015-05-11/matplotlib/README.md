@@ -1,5 +1,4 @@
-Plotting using matplotlib
-=========================
+# Plotting using matplotlib
 
 wekalist
 --------

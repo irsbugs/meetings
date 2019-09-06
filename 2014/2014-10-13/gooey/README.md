@@ -1,5 +1,5 @@
-Gooey
-===
+# Gooey
+
 
 To get started with Gooey, run this command:
 

@@ -23,6 +23,15 @@
 #
 # Creates the mkdocs.yml that resides in ~/hampug-website/
 #
+# TODO: Ask Peter to fix (try to avoid empty folders):
+#/nRemove list - Empty folders:
+#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/
+#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/
+#
+#Files reside in:
+#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/#wekalist/ (168 files .txt.gz)
+# ===
+
 import sys
 if sys.version_info[:2] < (3, 5):
     sys.exit("Please use Python 3.5 or higher.")
@@ -171,12 +180,10 @@ def get_file_dict(path):
 
     if DEBUG: print(remove_list)
 
-    if DEBUG: 
-        print("/nRemove list - Empty folders:")
-        for key in remove_list:
-            print(key)
-
-    sys.exit()
+    print("\nWARNING: Folders contain no files. May have sub-folders:")
+    for key in remove_list:
+        print(key)
+    print("\n")
 
     for key in remove_list:
         file_dict.pop(key)
@@ -187,6 +194,33 @@ def get_file_dict(path):
         if DEBUG: print(key, len(value))
 
     return file_dict
+
+
+def get_markdown_files(file_dict):
+    "Build a dictionary of the markdown files. i.e. file extension of .md"
+    markdown_dict = {}
+    for key, item in file_dict.items():
+        for file_name in item:
+            if file_name.endswith(".md"):
+                markdown_dict[key] = file_name
+
+    if DEBUG:
+        for key, item in markdown_dict.items():
+            #print(key, len(item))
+            print(key, item)
+    if DEBUG: print("len(markdown_dict):", len(markdown_dict))
+
+
+    for key, item in markdown_dict.items():
+        with open(key + item, "r") as fin:
+            s = fin.readlines()[0]
+            if s.startswith("# "):
+                #print(s) 
+                pass
+            else:
+                print(key, item, s)
+
+    return markdown_dict
 
 #def build_nav(file_dict, filter_prefix):
 def build_nav(file_dict, filter_prefix = os.getcwd()):
@@ -292,6 +326,9 @@ def main():
 
     # len(file_dict):  147
     # len(file_dict):  138  # 9 empty folders:
+
+    markdown_dict = get_markdown_files(file_dict)
+
     sys.exit()
 
     #get_glob_short_path()
@@ -573,5 +610,195 @@ drwxrwxr-x 8 ian ian 4096 Sep  5 17:20 .git
 
 
 ===
+
+
+/nRemove list - Empty folders:
+/home/ian/hampug-website/meetings/2014/
+/home/ian/hampug-website/meetings/2015/
+/home/ian/hampug-website/meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/
+/home/ian/hampug-website/meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/
+/home/ian/hampug-website/meetings/2016/
+/home/ian/hampug-website/meetings/2017/
+/home/ian/hampug-website/meetings/2017/2017-05-08/ian/
+/home/ian/hampug-website/meetings/2018/
+/home/ian/hampug-website/meetings/2019/
+
+
+Fixed folders for 2017/2017-05-08/ian/
+
+/nRemove list - Empty folders:
+/home/ian/hampug-website/meetings/2014/
+/home/ian/hampug-website/meetings/2015/
+/home/ian/hampug-website/meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/
+/home/ian/hampug-website/meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/
+/home/ian/hampug-website/meetings/2016/
+/home/ian/hampug-website/meetings/2017/
+/home/ian/hampug-website/meetings/2018/
+/home/ian/hampug-website/meetings/2019/
+
+
+====
+
+Fix /home/ian/hampug-website/meetings/2017/2017-05-08/ian/
+
+(venv7) ian@X200:~/hampug-website/meetings$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   2017/2017-05-08/README.md
+	deleted:    2017/2017-05-08/ian/client_server/README.md
+	deleted:    2017/2017-05-08/ian/client_server/client_server_presentation.odp
+	deleted:    2017/2017-05-08/ian/client_server/gtk_client.py
+	deleted:    2017/2017-05-08/ian/client_server/server.py
+	deleted:    2017/2017-05-08/ian/google_talk/README.md
+	deleted:    2017/2017-05-08/ian/google_talk/google_talk_presentation.tar.gz
+	modified:   mkdocs-auto
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	2017/2017-05-08/ian-client-server/
+	2017/2017-05-08/ian-google-talk/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+(venv7) ian@X200:~/hampug-website/meetings$ git add --all
+(venv7) ian@X200:~/hampug-website/meetings$ git commit -m "correct paths"
+[master 80a56c6] correct paths
+ 8 files changed, 21 insertions(+), 5 deletions(-)
+ rename 2017/2017-05-08/{ian/client_server => ian-client-server}/README.md (100%)
+ rename 2017/2017-05-08/{ian/client_server => ian-client-server}/client_server_presentation.odp (100%)
+ rename 2017/2017-05-08/{ian/client_server => ian-client-server}/gtk_client.py (100%)
+ rename 2017/2017-05-08/{ian/client_server => ian-client-server}/server.py (100%)
+ rename 2017/2017-05-08/{ian/google_talk => ian-google-talk}/README.md (100%)
+ rename 2017/2017-05-08/{ian/google_talk => ian-google-talk}/google_talk_presentation.tar.gz (100%)
+(venv7) ian@X200:~/hampug-website/meetings$ git push -u origin master
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+Counting objects: 6, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 866 bytes | 866.00 KiB/s, done.
+Total 6 (delta 3), reused 0 (delta 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/irsbugs/meetings.git
+   3e7a592..80a56c6  master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+===
+
+(venv7) ian@X200:~/hampug-website/meetings$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	2014/README.md
+	2015/README.md
+	2016/README.md
+	2017/README.md
+	2018/README.md
+	2019/README.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+(venv7) ian@X200:~/hampug-website/meetings$ git add --all
+(venv7) ian@X200:~/hampug-website/meetings$ git commit -m "add year summary"
+[master 6d26605] add year summary
+ 6 files changed, 86 insertions(+)
+ create mode 100644 2014/README.md
+ create mode 100644 2015/README.md
+ create mode 100644 2016/README.md
+ create mode 100644 2017/README.md
+ create mode 100644 2018/README.md
+ create mode 100644 2019/README.md
+(venv7) ian@X200:~/hampug-website/meetings$ git push -u origin master
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+Counting objects: 14, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (14/14), done.
+Writing objects: 100% (14/14), 1.70 KiB | 871.00 KiB/s, done.
+Total 14 (delta 6), reused 0 (delta 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+To https://github.com/irsbugs/meetings.git
+   80a56c6..6d26605  master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+===
+
+TODO: Ask Peter to fix:
+
+/nRemove list - Empty folders:
+meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/
+meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/
+
+Files reside in:
+meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/wekalist/ (168 files .txt.gz)
+
+===
+
+To be fixed: md files that don't start with '# '
+
+/home/ian/hampug-website/meetings/ README.md meetings
+
+/home/ian/hampug-website/meetings/2014/2014-06-09/spyderlib/ README.md Spyder - first impressions
+
+/home/ian/hampug-website/meetings/2014/2014-10-13/diy_home_monitoring/ README.md DIY Home Monitoring
+
+/home/ian/hampug-website/meetings/2014/2014-10-13/gooey/ README.md Gooey
+
+/home/ian/hampug-website/meetings/2014/2014-12-08/datamining/ README.md README
+
+/home/ian/hampug-website/meetings/2015/2015-04-13/libreoffice/ README.md LibreOffice and Python
+
+/home/ian/hampug-website/meetings/2015/2015-05-11/libreoffice/ README.md Python + LibreOffice
+
+/home/ian/hampug-website/meetings/2015/2015-05-11/libreoffice/python version minimum/ README.md Python Version Minimum
+
+/home/ian/hampug-website/meetings/2015/2015-05-11/libreoffice/pythonhouse/ README.md Python Universal Network Object (UNO) Bridge to LibreOffice/OpenOffice
+
+/home/ian/hampug-website/meetings/2015/2015-05-11/matplotlib/ README.md Plotting using matplotlib
+
+/home/ian/hampug-website/meetings/2015/2015-10-12/begins/ README.md begins
+
+/home/ian/hampug-website/meetings/2015/2015-10-12/plac/ README.md Plac presentation
+
+/home/ian/hampug-website/meetings/2015/2015-10-12/quiz/ README.md Quiz presentation
+
+/home/ian/hampug-website/meetings/2015/2015-10-12/sys.argv/ README.md Sys module presentation
+
+/home/ian/hampug-website/meetings/2016/2016-04-11/ncea presentation/ README.md NCEA
+
+/home/ian/hampug-website/meetings/2016/2016-04-11/prime_number/ README.md Prime number
+
+/home/ian/hampug-website/meetings/2016/2016-05-09/python2to3experiences/ python2to3migration.md Python 2.7 to 3 migration
+
+/home/ian/hampug-website/meetings/2016/2016-11-14/web2py/ README.md web2py + meetup.com
+
+/home/ian/hampug-website/meetings/2017/2017-04-10/ian/ README.md ## Flask ##
+
+/home/ian/hampug-website/meetings/2017/2017-05-08/ian-client-server/ README.md ## Client Server Presentation
+
+/home/ian/hampug-website/meetings/2017/2017-05-08/ian-google-talk/ README.md ## Google Text to Speech
+
+/home/ian/hampug-website/meetings/2017/2017-10-09/ian/ README.md ## The Cycle Analyst and Capturing its Serial Line data with Asyncio
+
+/home/ian/hampug-website/meetings/2018/2018-03-12/ian/ README.md ### Setting up Python on Windows x64
+
+/home/ian/hampug-website/meetings/2018/2018-05-14/ian/ README.md ## Installation of Jupyter Notebook
+
+/home/ian/hampug-website/meetings/2018/2018-10-08/fifo/ README.md ### String data manipulation using list methods
+
+/home/ian/hampug-website/meetings/2019/2019-03-11/local_bin/ README.md ## A Local /bin Directory
+
+/home/ian/hampug-website/meetings/2019/2019-06-10/ian/ README.md There are sets of line drawing characters. They reside in the range from 9480 through 9628. 
 """
 

@@ -1,5 +1,5 @@
-LibreOffice and Python
-======================
+# LibreOffice and Python
+
 
 This folder includes the LibreOffice using Python presentation in *four* parts
 and the `pyinsert.py` file.

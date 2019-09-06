@@ -1,4 +1,4 @@
-## A Local /bin Directory
+# A Local /bin Directory
 
 It is likely that when you log into an account on a Linux desktop computer it will run a .profile file that checks for the existence of a *bin* folder  off your home directory. If Python and Bash scripts with execute status are placed into this /bin directory, then these programs may be run from the bash prompt from anywhere within the users account.
 

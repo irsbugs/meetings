@@ -1,5 +1,5 @@
-Prime number
-============
+# Prime number
+
 
 `prime_number_locater.py` is an example program designed to meet the
 specification of the NCEA Level3 Digital Technologies Unit 91637 titled

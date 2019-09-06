@@ -1,5 +1,5 @@
-web2py + meetup.com
-===================
+# web2py + meetup.com
+
 
 * `meetup.py` uses the meetup.com API to retrieve the next upcoming meeting.
 

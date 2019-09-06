@@ -1,5 +1,5 @@
-NCEA
-====
+# NCEA
+
 
 Python for NCEA units.odp is a slide show that may be useful in understanding
 the New Zealand secondary school National Certificate of Education (NCEA)

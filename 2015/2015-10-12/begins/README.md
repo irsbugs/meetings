@@ -1,5 +1,4 @@
-begins
-======
+# begins
 
 [begins](https://pypi.python.org/pypi/begins) is described as *Command line programs for busy developers*.
 And you couldn't describe it any better. 
