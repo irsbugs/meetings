@@ -40,6 +40,7 @@ if sys.platform != 'linux':
 
 import os
 import glob  # Requires V3.5+
+import subprocess
 
 # Debug Flag: -d or --debug.
 DEBUG = False
@@ -250,6 +251,7 @@ def get_markdown_files(file_dict):
 
 def build_navigation(markdown_dict):
     """
+    NOT USED: Use auto config of nav
     What if 2 x md in same folder. Does markdown_dict work?
     Build the nav: string for use in mkdocs.yml
     Requires: markdown_dict
@@ -311,8 +313,77 @@ def run_mkdocs(mkdocs_file):
     with open(TOP_DIR + "mkdocs.yml", "w") as fout:
         fout.write(mkdocs_file)
 
-        
+    # Remove contents of docs
+    # 
+    command = "rm -r docs/*"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+    
 
+    # run mkdocs built --clean up one level
+    print("os.getcwd():", os.getcwd())
+    # Go up one directory to run the mkdocs
+    os.chdir("..")
+    #os.path.normpath(os.getcwd() + os.sep + os.pardir)
+    print("os.getcwd():", os.getcwd())
+
+    #command = 'ls .. -1'  # < -- Works
+    # Run mkdocs
+    command = "mkdocs build --clean"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    os.chdir("meetings")
+    print("os.getcwd():", os.getcwd())    
+
+    command = "rsync -r ../docs/ docs/"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git status"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git add --all"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git commit -m 'update website'"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git push -u origin master"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    """
+    (venv7) ian@X200:~/hampug-website/meetings$ pwd; cd ..; pwd; date; cd meetings; pwd
+    /home/ian/hampug-website/meetings
+    /home/ian/hampug-website
+    Sun Sep  8 10:03:49 NZST 2019
+    /home/ian/hampug-website/meetings
+
+    > doit = subprocess.Popen('here.exe -command', cwd='C:/myproject/betty/')
+
+    In Python use import os then os.chdir('/tmp/yourdirectory') That will set the current directory for your python script. 
+    >>> os.getcwd()
+    '/home/ian/knife1/Spoon-Knife'
+
+    >>> os.chdir("..")
+    >>> os.getcwd()
+    '/home/ian/knife1'
+
+    # Go up one directory
+    os.path.normpath(os.getcwd() + os.sep + os.pardir)
+    """
+
+    #command = ['cd ..' ]
+    #completed = subprocess.run(command)
+    #print('returncode:', completed.returncode)          
+
+    #command = ['ls', '-1']
+    #completed = subprocess.run(command)
+    #print('returncode:', completed.returncode)  
 
 def create_data():
     # In the meetings folder create mock data
