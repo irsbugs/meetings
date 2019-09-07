@@ -1,11 +1,11 @@
-# 2019/07/08 - Jupyter kernels
+# Jupyter kernels
 
 * [xeus-cling](https://github.com/QuantStack/xeus-cling) - Jupyter kernel for C++
 * Available through [Anaconda](https://www.anaconda.com/distribution/)
 * [Installation](https://xeus-cling.readthedocs.io/en/latest/installation.html)
 
 
-### Jupyter Notebook
+## Jupyter Notebook
 
 Jupyter Notebook (formerly IPython Notebooks) is a web-based interactive computational environment for creating, executing, and visualizing Jupyter notebooks. By default Jupyter Notebook ships with the IPython kernel to provide execution of Python code.
 
@@ -19,7 +19,7 @@ It is launched from a console command line with $ jupyter-notebook
 
 The notebook files that are created have the extension .ipynb
 
-### Binder
+## Binder
 
 This is a web-site that provides an on-line Jupyter notebook executable environment. 
 
@@ -50,7 +50,7 @@ For example the markdown code to produce the launch binder icon is:
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2019%2F2019-07-08%2Fjupyter_kernels%2Ftest.ipynb)
 
 
-### C++ and Binder
+## C++ and Binder
 
 The language C++ normally requires its code to be compiled and then it can be executed.  
 

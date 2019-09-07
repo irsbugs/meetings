@@ -65,6 +65,14 @@ if cwd_list[-1] != REPO_DIR:
              "This program should reside and be launched this from the\n" 
              "'{}' repository folder.".format(CWD, REPO_DIR))
 
+# Get directory depth used for slicing prefix folders in mkdocs.yml:
+if DEBUG: print("len(cwd_list):", len(cwd_list))
+if DEBUG: print("cwd_list:" , cwd_list) 
+# cwd_list: ['', 'home', 'ian', 'hampug-website', 'meetings']
+DEPTH = cwd_list.index(REPO_DIR) + 1
+if DEBUG: print("DEPTH:", DEPTH) # 5
+
+
 # Concept: Directory constants/ variables will end with the os seperator.
 cwd_list.pop()
 TOP_DIR = os.sep.join(cwd_list) + os.sep
@@ -197,86 +205,114 @@ def get_file_dict(path):
 
 
 def get_markdown_files(file_dict):
-    "Build a dictionary of the markdown files. i.e. file extension of .md"
+    """
+    Build a dictionary of the markdown files. i.e. file extension of .md
+    Needs to be a list as may be more than 1 x .md in a folder.
+    E.g.
+    /home/ian/hampug-website/meetings/2019/ ['extra.md', 'README.md']
+    """
+
     markdown_dict = {}
     for key, item in file_dict.items():
         for file_name in item:
             if file_name.endswith(".md"):
-                markdown_dict[key] = file_name
+                if key in markdown_dict.keys():
+                    # Already exists so append to list
+                    markdown_dict[key].append(file_name)
+                else:
+                    # Create a list and append
+                    markdown_dict[key] = []
+                    markdown_dict[key].append(file_name)
 
     if DEBUG:
         for key, item in markdown_dict.items():
             #print(key, len(item))
-            print(key, item)
-    if DEBUG: print("len(markdown_dict):", len(markdown_dict))
+            print(key, item, len(item))
+    if DEBUG: print("len(markdown_dict):", len(markdown_dict)) # 110
 
 
+    if DEBUG: print("Checking. Files that do not start with '# ':")
+    count = 0
     for key, item in markdown_dict.items():
-        with open(key + item, "r") as fin:
-            s = fin.readlines()[0]
-            if s.startswith("# "):
-                #print(s) 
-                pass
-            else:
-                print(key, item, s)
+        for file_name in item:
+            with open(key + file_name, "r") as fin:
+                s = fin.readlines()[0]
+                if s.startswith("# "):
+                    #print(s) 
+                    pass
+                else:
+                    print(key, file_name, s)
+                    count += 1
+
+    print("Total markdown files that do not start with # : {}".format(count))
 
     return markdown_dict
 
-#def build_nav(file_dict, filter_prefix):
-def build_nav(file_dict, filter_prefix = os.getcwd()):
+def build_navigation(markdown_dict):
     """
-    Use the file_dict to build the mkdocs.yml nav: paths
-    Files in the top level are changed to use their file name
-    Except that README.md in top level will become index.html 
-
+    What if 2 x md in same folder. Does markdown_dict work?
+    Build the nav: string for use in mkdocs.yml
+    Requires: markdown_dict
+        DEPTH of "meetings" folder in all keys S/B: 4
     """
-    #if filter_prefix == "":
-    #    filter_prefix = os.getcwd()
+    s = "\nnav:\n"
+    for key, item in markdown_dict.items():
+        # item is a list
+        key_list = key.split(os.sep)
+        print(key_list)
+        # ['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
 
-    if DEBUG: print("filter_prefix: ", filter_prefix)
-    if DEBUG: print("len(file_dict): ", len(file_dict))
-    for key, file_name_list in sorted(file_dict.items()):
+        key_list = key_list[DEPTH:]
+        key_indent = len(key_list)
+        print(key_list) # ['2019', '']
+        key_short = os.sep.join(key_list)
+        print(key_short) # 2019/
+        for file_name in item:
+            with open(key + file_name, "r") as fin:
+                title = fin.readlines()[0]
+                title = title[2:]  # Strip the '# '
+                title = title.strip() # Strip the n/l and trailing spaces
+    
+            path = key_short + file_name
+            print(path) # 2019/README.md
+            prefix = " " * key_indent * 4 + "- "
+            path = ": '"+ path + "'"
+            print(prefix + title + path)
+            s += prefix + title + path + "\n"
 
+            #nav:
+            #    - About: 'about.md'
+            #    - Meetings: 'README.md'
+            #        - 2014: '2014/README.md'
+            #            - 2014-02-24: '2014/2014-02-24/README.md'
+            #            - 2014-03-10: '2014/2014-03-10/README.md'
+            #            - 2014-04-14: '2014/2014-04-14/README.md'
+            #            - 2014-05-12: '2014/2014-05-12/README.md'
+            #            - 2014-06-09: '2014/2014-06-09/README.md'
+            #                - Spyder: '2014/2014-06-09/spyderlib/README.md'
+ 
+            #['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
+            #['2019', '']
+            #2019/
+            #2019/extra.md
+            #    -: '2019/extra.md'
+            #2019/README.md
+            #    -: '2019/README.md'
+    s += "\n"
+    if DEBUG: print(s)
+    return s
+        
+def run_mkdocs(mkdocs_file):
+    """
+    MkDocs is run up-one-level (TOP_DIR) from CWD, so it finds its folders OK.
+    Create the file mkdocs.yml up-one-level
+    If folder doesn't exist may need to create docs/ up-one-level
+    """
+    with open(TOP_DIR + "mkdocs.yml", "w") as fout:
+        fout.write(mkdocs_file)
 
-
-        key_short = key.replace(filter_prefix,'')
-        for file_name in file_name_list: 
-            if file_name == "README.md":
-                # Check first line of README.md for a Title
-                with open(key + file_name) as f:
-                    first_line = f.readline().strip()
-                    first_line_list = first_line.split(" ")
-                    print(first_line_list[1])  # About
         
 
-
-            path = key_short + file_name
-
-        #y = x.replace('.good','')
-        print(key_short, path) # /meetings/ /meetings/README.md
-
-
-    #     path = '/home/ian/venv7/' 
-    # The initial path is 3 x folders: Remove the first three folders
-    # from the key
-    #file_split.pop(0)
-    #file_split.pop(0)
-    #file_split.pop(0)
-
-
-
-def get_file():
-
-    from os import listdir
-    from os.path import isfile, join
-     
-    dirName = "/home/ian/venv7/" #CWD #"/home/ian"  #CWD #"/home/ian/hampug-meetings" #MEETING_DIR
-    print(dirName)
-    print(listdir(dirName))
-
-    # Get only filenames
-    fileNames = [f for f in listdir(dirName) if isfile(join(dirName, f))]     
-    print (fileNames)
 
 def create_data():
     # In the meetings folder create mock data
@@ -312,7 +348,7 @@ def main():
     help()
 
     program_info()
-    #get_file()
+
     #get_readme()
     #file_dict = get_file_dict('/home/ian/venv7/')
 
@@ -329,6 +365,17 @@ def main():
 
     markdown_dict = get_markdown_files(file_dict)
 
+    # OK to here 110 .md files all start with # 
+    # TODO: Build the nav path
+    nav_string = build_navigation(markdown_dict)
+    if DEBUG: print(nav_string)
+
+    #  nav: string not required auto-generated.
+    mkdocs_file = TEMPLATE  #  + nav_string
+    if DEBUG: print(mkdocs_file)
+
+    run_mkdocs(mkdocs_file)
+
     sys.exit()
 
     #get_glob_short_path()
@@ -342,6 +389,41 @@ def main():
     pass
 
 # Stuff long-winded constants here...
+# The template for building the mkdocs.yml file
+TEMPLATE = """site_name: HamPUG
+docs_dir: meetings  # Source files. default is docs
+site_dir: docs      # Website files. (Temporary): Default is site.
+                    # Website files are later rsync'ed to meetings/docs
+
+# The material theme uses a different search from the default mkdocs theme
+#theme: 
+#    name: 'material'  # was 'mkdocs'
+#    palette:
+#        primary: 'indigo'
+#        accent: 'indigo'
+
+# Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
+# Exclude the /docs/ folder (the website) in the meetings source folder
+# Since meetings is the source, then just need doc/* to exclude
+# This is later used to hold the website via:
+# rsync -r docs/ meetings/docs/ 
+# Exclude: 
+#   Impress presentation files (.opd) 
+#   Jupyter Notebook (.ipynb)
+# '- search' needs to be added to the plugins list.
+
+plugins:
+    - exclude:
+        glob:
+            - docs/* 
+            - "*.odp"
+            - "*.ipynb"
+            - "*.yml"
+            - about.md
+    - search:
+
+"""
+
 INTRO = """
 Welcome to the program '{}' version {}.
 This program is for creating a Github project website for:
@@ -800,5 +882,190 @@ To be fixed: md files that don't start with '# '
 /home/ian/hampug-website/meetings/2019/2019-03-11/local_bin/ README.md ## A Local /bin Directory
 
 /home/ian/hampug-website/meetings/2019/2019-06-10/ian/ README.md There are sets of line drawing characters. They reside in the range from 9480 through 9628. 
+
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   2014/2014-06-09/spyderlib/README.md
+	modified:   2014/2014-10-13/diy_home_monitoring/README.md
+	modified:   2014/2014-10-13/gooey/README.md
+	modified:   2014/2014-12-08/datamining/README.md
+	modified:   2015/2015-04-13/libreoffice/README.md
+	modified:   2015/2015-05-11/libreoffice/README.md
+	modified:   2015/2015-05-11/libreoffice/python version minimum/README.md
+	modified:   2015/2015-05-11/libreoffice/pythonhouse/README.md
+	modified:   2015/2015-05-11/matplotlib/README.md
+	modified:   2015/2015-10-12/begins/README.md
+	modified:   2015/2015-10-12/plac/README.md
+	modified:   2015/2015-10-12/quiz/README.md
+	modified:   2015/2015-10-12/sys.argv/README.md
+	modified:   2016/2016-04-11/ncea presentation/README.md
+	modified:   2016/2016-04-11/prime_number/README.md
+	modified:   2016/2016-05-09/python2to3experiences/python2to3migration.md
+	modified:   2016/2016-11-14/web2py/README.md
+	modified:   2017/2017-04-10/ian/README.md
+	modified:   2017/2017-05-08/ian-client-server/README.md
+	modified:   2017/2017-05-08/ian-google-talk/README.md
+	modified:   2017/2017-10-09/ian/README.md
+	modified:   2018/2018-03-12/ian/README.md
+	deleted:    2018/2018-05-14/ian/Jupyter Notebook Install.odp
+	deleted:    2018/2018-05-14/ian/Python Version Check.odp
+	deleted:    2018/2018-05-14/ian/README.md
+	modified:   2018/2018-10-08/fifo/README.md
+	modified:   2019/2019-03-11/local_bin/README.md
+	modified:   2019/2019-06-10/ian/README.md
+	modified:   README.md
+	modified:   mkdocs-auto
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	2018/2018-05-14/ian-jupiter/
+	2018/2018-05-14/ian-python-version/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+
+====
+
+OLD NOT USED
+
+#def build_nav(file_dict, filter_prefix):
+def build_nav(file_dict, filter_prefix = os.getcwd()):
+    '''
+    Use the file_dict to build the mkdocs.yml nav: paths
+    Files in the top level are changed to use their file name
+    Except that README.md in top level will become index.html 
+
+    '''
+    #if filter_prefix == "":
+    #    filter_prefix = os.getcwd()
+
+    if DEBUG: print("filter_prefix: ", filter_prefix)
+    if DEBUG: print("len(file_dict): ", len(file_dict))
+    for key, file_name_list in sorted(file_dict.items()):
+
+        key_short = key.replace(filter_prefix,'')
+        for file_name in file_name_list: 
+            if file_name == "README.md":
+                # Check first line of README.md for a Title
+                with open(key + file_name) as f:
+                    first_line = f.readline().strip()
+                    first_line_list = first_line.split(" ")
+                    print(first_line_list[1])  # About
+        
+
+
+            path = key_short + file_name
+
+        #y = x.replace('.good','')
+        print(key_short, path) # /meetings/ /meetings/README.md
+
+
+    #     path = '/home/ian/venv7/' 
+    # The initial path is 3 x folders: Remove the first three folders
+    # from the key
+    #file_split.pop(0)
+    #file_split.pop(0)
+    #file_split.pop(0)
+
+
+
+(venv7) ian@X200:~/hampug-website/meetings$ cd .. ; mkdocs build ; cd meetings
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/docs 
+INFO    -  The following pages exist in the docs directory, but are not included in the "nav" configuration:
+  - README.md
+  - about.md
+  - 2014/README.md
+  - 2015/2015-05-11/README.md
+  - 2015/2015-05-11/libreoffice/README.md
+  - 2015/2015-05-11/libreoffice/python version minimum/README.md
+  - 2015/2015-05-11/libreoffice/pythonhouse/README.md
+  - 2015/2015-05-11/matplotlib/README.md
+  - 2015/2015-06-08/README.md
+  - 2015/2015-07-13/README.md
+  - 2015/2015-08-10/README.md
+  - 2015/2015-09-14/README.md
+  - 2015/2015-10-12/README.md
+  - 2015/2015-10-12/begins/README.md
+  - 2015/2015-10-12/plac/README.md
+  - 2015/2015-10-12/quiz/README.md
+  - 2015/2015-10-12/sys.argv/README.md
+  - 2015/2015-11-09/README.md
+  - 2015/2015-11-09/pelican/Pelican.md
+  - 2015/2015-11-09/pyudev/README.md
+  - 2015/2015-12-14/README.md
+  - 2016/README.md
+  - 2016/2016-02-08/README.md
+  - 2016/2016-03-14/README.md
+  - 2016/2016-04-11/README.md
+  - 2016/2016-04-11/ncea presentation/README.md
+  - 2016/2016-04-11/prime_number/README.md
+  - 2016/2016-05-09/README.md
+  - 2016/2016-05-09/python2to3experiences/python2to3migration.md
+  - 2016/2016-06-13/README.md
+  - 2016/2016-07-11/README.md
+  - 2016/2016-08-08/README.md
+  - 2016/2016-09-12/README.md
+  - 2016/2016-09-12/ian-python_art/README.md
+  - 2016/2016-09-12/ian-tkinter_templates/README.md
+  - 2016/2016-10-10/README.md
+  - 2016/2016-11-14/README.md
+  - 2016/2016-11-14/web2py/README.md
+  - 2016/2016-12-13/README.md
+  - 2017/README.md
+  - 2017/2017-02-13/README.md
+  - 2017/2017-03-13/README.md
+  - 2017/2017-04-10/README.md
+  - 2017/2017-04-10/ian/README.md
+  - 2017/2017-05-08/README.md
+  - 2017/2017-05-08/ian-client-server/README.md
+  - 2017/2017-05-08/ian-google-talk/README.md
+  - 2017/2017-06-12/README.md
+  - 2017/2017-07-10/README.md
+  - 2017/2017-08-10/README.md
+  - 2017/2017-09-11/README.md
+  - 2017/2017-10-09/README.md
+  - 2017/2017-10-09/ian/README.md
+  - 2017/2017-11-13/README.md
+  - 2017/2017-12-11/README.md
+  - 2018/README.md
+  - 2018/2018-02-12/README.md
+  - 2018/2018-03-12/README.md
+  - 2018/2018-03-12/ian/README.md
+  - 2018/2018-04-09/README.md
+  - 2018/2018-05-14/README.md
+  - 2018/2018-05-14/ian-jupiter/README.md
+  - 2018/2018-05-14/ian-python-version/README.md
+  - 2018/2018-05-14/my_first_notebook/README.md
+  - 2018/2018-06-11/README.md
+  - 2018/2018-06-11/presentation.md
+  - 2018/2018-07-09/README.md
+  - 2018/2018-08-13/README.md
+  - 2018/2018-09-10/README.md
+  - 2018/2018-09-10/waitress/README.md
+  - 2018/2018-10-08/README.md
+  - 2018/2018-10-08/fifo/README.md
+  - 2018/2018-11-12/README.md
+  - 2018/2018-12-10/README.md
+  - 2019/README.md
+  - 2019/extra.md
+  - 2019/2019-02-11/README.md
+  - 2019/2019-03-11/README.md
+  - 2019/2019-03-11/local_bin/README.md
+  - 2019/2019-03-11/rpi3_and_tensorflow/README.md
+  - 2019/2019-04-08/README.md
+  - 2019/2019-05-13/README.md
+  - 2019/2019-06-10/README.md
+  - 2019/2019-06-10/bonobo/README.md
+  - 2019/2019-06-10/bubbles/README.md
+  - 2019/2019-06-10/data/README.md
+  - 2019/2019-06-10/ian/README.md
+  - 2019/2019-06-10/pandas/README.md
+  - 2019/2019-06-10/petl/README.md
+  - 2019/2019-07-08/README.md
+  - 2019/2019-07-08/jupyter_kernels/README.md
+  - 2019/2019-07-08/pep484_type_hinting/README.md
+  - 2019/2019-08-12/README.md 
 """
 
