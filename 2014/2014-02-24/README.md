@@ -1,4 +1,6 @@
 # 2014-02-24
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-02-24/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-02-24/)
+
 #### 1
 
 ## Initial Meeting of Hamilton Python User Group - HamPUG
