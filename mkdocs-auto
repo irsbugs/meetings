@@ -389,7 +389,7 @@ def program_info():
 def help():
     if "-h" in sys.argv or "--help" in sys.argv:
         print(INTRO)
-
+        sys.exit()
 
 def main():
     help()
