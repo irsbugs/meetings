@@ -3,6 +3,8 @@
 # mkdocs-auto
 #
 # TODO: One time program to setup the environment?
+# Original clone of irsbugs/meeting
+# $ git clone https://github.com/irsbugs/meetings.git
 #
 # Objectives:
 # This program uses the Github hampug meetings repository for data.
@@ -30,6 +32,8 @@
 #
 #Files reside in:
 #meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/#wekalist/ (168 files .txt.gz)
+#
+#
 # ===
 
 import sys
@@ -439,15 +443,15 @@ def main():
 # The template for building the mkdocs.yml file
 TEMPLATE = """site_name: HamPUG
 docs_dir: meetings  # Source files. default is docs
-site_dir: docs      # Website files. (Temporary): Default is site.
+site_dir: docs      # Website files. (Temporary) Default is site.
                     # Website files are later rsync'ed to meetings/docs
 
 # The material theme uses a different search from the default mkdocs theme
-#theme: 
-#    name: 'material'  # default is 'mkdocs' theme
-#    palette:
-#        primary: 'indigo'
-#        accent: 'indigo'
+theme: 
+    name: 'material'  # default is 'mkdocs' theme
+    palette:
+        primary: 'indigo'
+        accent: 'indigo'
 
 # Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
 # Exclude the /docs/ folder (the website) in the meetings source folder
