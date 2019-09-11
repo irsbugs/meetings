@@ -12,27 +12,10 @@
 # It must be launched from the local git meetings repository 
 # It requires: git, mkdocs, mkdocs-exclude, mkdocs-material
 # It should be launched from a virtual environment.
-#
-# It performs the following:
-# NO: Creates a working directory (if it doesn't already exist)
-#   Off ~/ hampug-website
-# NO: Clones the hampug github repository meetings
-#   Off: ~/website/meetings/
-# YES: This program resides in:
+# This program resides in:
 #   ~/.../meetings/
-#   Thus it is becomes part of the repository
-# NO:  But it is run from ~/hampug-website/ so the CWD is simplier to deal with
-#
-# Creates the mkdocs.yml that resides in ~/hampug-website/
-#
-# TODO: Ask Peter to fix (try to avoid empty folders):
-#/nRemove list - Empty folders:
-#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/
-#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/
-#
-#Files reside in:
-#meetings/2015/2015-05-11/matplotlib/wekalist/list.waikato.ac.nz/pipermail/#wekalist/ (168 files .txt.gz)
-#
+#   Thus it is becomes part of the meeting repository
+# Creates a temporary mkdocs.yml that resides up-one-level
 #
 # ===
 
@@ -401,20 +384,31 @@ def main():
     program_info()
 
     #get_readme()
+    
     #file_dict = get_file_dict('/home/ian/venv7/')
 
 
     # Get a dictionary of all files in 
     file_dict = get_file_dict(CWD)
+    
+
     #file_dict = get_file_dict('/home/ian/hampug-meetings/')
 
     for key, value in file_dict.items():
         if DEBUG: print(key, len(value))
 
+
+
     # len(file_dict):  147
     # len(file_dict):  138  # 9 empty folders:
 
     markdown_dict = get_markdown_files(file_dict)
+
+    for key, value in markdown_dict.items():
+        print(key, len(value))
+
+    sys.exit()
+
 
     # OK to here 110 .md files all start with # 
     # TODO: Build the nav path
