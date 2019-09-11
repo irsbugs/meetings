@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2019/2019-08-12/README.md

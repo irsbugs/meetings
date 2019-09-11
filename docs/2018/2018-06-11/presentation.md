@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2018/2018-06-11/presentation.md

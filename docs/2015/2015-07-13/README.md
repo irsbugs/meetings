@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2015/2015-07-13/README.md
