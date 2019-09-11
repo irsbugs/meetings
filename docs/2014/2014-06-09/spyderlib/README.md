@@ -1,0 +1,1 @@
+/home/ian/hampug-website/meetings/2014/2014-06-09/spyderlib/README.md
