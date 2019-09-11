@@ -309,9 +309,18 @@ def run_mkdocs(mkdocs_file):
     if response[0].lower() not in ("y", "t", 1):
         sys.exit("Exiting...")
 
-    sys.exit()
 
-    # TODO: From here on but using gh_pages()
+    # Deploy to github pages:
+    # This will do a build and then push contents of site up to Github gh-pages
+    #
+    # $ mkdocs gh-deploy
+    command = "mkdocs gh-deploy"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    sys.exit()   
+    """
+
     command = "rsync -r ../docs/ docs/"
     completed = subprocess.run(command, shell=True)
     print('returncode:', completed.returncode)
@@ -331,6 +340,7 @@ def run_mkdocs(mkdocs_file):
     command = "git push -u origin master"
     completed = subprocess.run(command, shell=True)
     print('returncode:', completed.returncode)
+    """
 
 
 def program_info():
@@ -1137,5 +1147,44 @@ hint: counterpart. Check out this branch and integrate the remote changes
 hint: (e.g. 'git pull ...') before pushing again.
 hint: See the 'Note about fast-forwards' in 'git push --help' for details.
  
-"""
 
+===
+
+(venv7) ian@X200:~/hampug-website/meetings$ git pull
+From https://github.com/irsbugs/meetings
+ * [new branch]      gh-pages   -> origin/gh-pages
+Already up to date.
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+
+
+(venv7) ian@X200:~/hampug-website/meetings$ mkdocs gh-deploy
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+INFO    -  Copying '/home/ian/hampug-website/meetings/site' to 'gh-pages' branch and pushing to GitHub. 
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+INFO    -  Your documentation should shortly be available at: https://irsbugs.github.io/meetings/ 
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+(venv7) ian@X200:~/hampug-website/meetings$ cd docs
+(venv7) ian@X200:~/hampug-website/meetings/docs$ rm -r *
+(venv7) ian@X200:~/hampug-website/meetings/docs$ cd ..
+(venv7) ian@X200:~/hampug-website/meetings$ rmdir docs
+(venv7) ian@X200:~/hampug-website/meetings$ ls
+2014  2015  2016  2017  2018  2019  about.md  mkdocs-auto  mkdocs-sym-auto  mkdocs.yml  README.md  site
+(venv7) ian@X200:~/hampug-website/meetings$ cd site
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+2014  2015  2016  2017  2018  2019  404.html  about  assets  index.html  search  sitemap.xml  sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+2014  2015  2016  2017  2018  2019  404.html  about  assets  index.html  search  sitemap.xml  sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings/site$ rm -r *
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+(venv7) ian@X200:~/hampug-website/meetings/site$ cd ..
+(venv7) ian@X200:~/hampug-website/meetings$ rmdir site
+(venv7) ian@X200:~/hampug-website/meetings$ ls
+2014  2015  2016  2017  2018  2019  about.md  mkdocs-auto  mkdocs-sym-auto  mkdocs.yml  README.md
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+
+"""

@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2019/2019-07-08/jupyter_kernels/README.md

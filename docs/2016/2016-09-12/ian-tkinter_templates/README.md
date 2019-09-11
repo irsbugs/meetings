@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2016/2016-09-12/ian-tkinter_templates/README.md

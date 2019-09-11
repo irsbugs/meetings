@@ -1,1 +1,0 @@
-/home/ian/hampug-website/meetings/2019/2019-03-11/local_bin/README.md
