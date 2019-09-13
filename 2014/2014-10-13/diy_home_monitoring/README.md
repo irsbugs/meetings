@@ -1,5 +1,5 @@
 # DIY Home Monitoring
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-10-13/diy_home_monitoring/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-10-13/diy_home_monitoring/) 
 
 * Github project:
 

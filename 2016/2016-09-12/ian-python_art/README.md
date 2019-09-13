@@ -1,4 +1,5 @@
 # Art of Python
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-09-12/ian-python_art/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-09-12/ian-python_art/) 
 
 ## Presentation Slide show
 

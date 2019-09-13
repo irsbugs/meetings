@@ -1,6 +1,5 @@
 # 2015-04-13
-#### 14
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-04-13/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-04-13/) 
 
 ## Using Python as the macro script with Libreoffice.
 
@@ -31,3 +30,5 @@ To launch Binder website to run the Jupyter server for the file
 *demo.ipynb* click on the following icon...
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2015%2F2015-04-13%2Fdemo.ipynb)
+
+M14

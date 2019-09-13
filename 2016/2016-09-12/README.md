@@ -1,5 +1,5 @@
 # 2016-09-12
-#### 30
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-09-12/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-09-12/) 
 
 ## Evolution of a Python program
 
@@ -29,3 +29,5 @@ Click on the launch binder icon to launch the ipynb presentation in binder...
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2016%2F2016-09-12%2Fldo%2FPython%20Intro%20Talk%202%E2%88%952.ipynb)
 
+
+M30

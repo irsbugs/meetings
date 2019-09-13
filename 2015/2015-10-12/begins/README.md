@@ -1,4 +1,5 @@
 # begins
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-10-12/begins/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-10-12/begins/) 
 
 [begins](https://pypi.python.org/pypi/begins) is described as *Command line programs for busy developers*.
 And you couldn't describe it any better. 

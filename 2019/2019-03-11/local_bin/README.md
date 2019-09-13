@@ -1,4 +1,5 @@
 # A Local /bin Directory
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-03-11/local_bin/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-03-11/local_bin/) 
 
 It is likely that when you log into an account on a Linux desktop computer it will run a .profile file that checks for the existence of a *bin* folder  off your home directory. If Python and Bash scripts with execute status are placed into this /bin directory, then these programs may be run from the bash prompt from anywhere within the users account.
 

@@ -1,4 +1,5 @@
 # Introduction to Tkinter Template Generator
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-09-12/ian-tkinter_templates/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-09-12/ian-tkinter_templates/) 
 
 ## Presentation Slide show
 

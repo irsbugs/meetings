@@ -1,5 +1,5 @@
 # Gooey
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-10-13/gooey/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-10-13/gooey/) 
 
 To get started with Gooey, run this command:
 

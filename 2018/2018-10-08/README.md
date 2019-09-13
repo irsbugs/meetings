@@ -1,5 +1,5 @@
 # 2018-10-08
-#### 53
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-10-08/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-10-08/) 
 
 ## Web-Scraping
 
@@ -28,3 +28,5 @@ The list() function to convert a string to an array of characters is complemente
 click the launch binder icon to run Ian's ipynb file in the binder Jupyter server...
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2018%2F2018-10-08%2Ffifo%2Ffifo_presentation.ipynb)
+
+M53

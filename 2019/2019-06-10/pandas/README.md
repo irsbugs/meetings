@@ -1,4 +1,5 @@
 # Pandas
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-06-10/pandas/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-06-10/pandas/) 
 
 *pandas* is an open source, BSD-licensed library providing high-performance,
 easy-to-use data structures and data analysis tools for the Python

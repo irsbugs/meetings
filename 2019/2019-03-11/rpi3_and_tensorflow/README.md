@@ -1,4 +1,5 @@
 # Tensorflow on RPi3
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-03-11/rpi3_and_tensorflow/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-03-11/rpi3_and_tensorflow/) 
 
 Instructions and code are based on:
 

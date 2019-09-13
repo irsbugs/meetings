@@ -1,4 +1,5 @@
 # Setting up Python on Windows x64
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-03-12/ian/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-03-12/ian/) 
 
 The Microsoft Windows Operating System currently ships without Python installed. 
 This presentation provides a step-by-step guide to installing Python onto a 

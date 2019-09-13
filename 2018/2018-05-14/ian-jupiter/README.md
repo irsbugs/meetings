@@ -1,4 +1,5 @@
 # Installation of Jupyter Notebook
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-05-14/ian-jupiter/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-05-14/ian-jupiter/) 
 
 Jupyter Notebook is a browser based development environment for writing python code.
  

@@ -1,5 +1,5 @@
 # 2016-02-08/
-#### 23
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-02-08/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-02-08/) 
 
 ## IPython
 
@@ -49,3 +49,5 @@ What about security? First of all, a notebook can execute arbitrary code. The no
 There is another issue, that of receiving a notebook from another (possibly untrusted) source and executing arbitrary code from that. IPython doesn’t prevent you from doing this. But it will not automatically execute JavaScript from cached cell output, unless the notebook signature is verified against a key known to the user <https://ipython.org/ipython-doc/3/notebook/security.html>. Normally each user generates their own key, but it is possible to share keys with trusted colleagues.
 
 IPython lets you set up multiple profiles, and easily switch between them. These let you create different sets of custom default settings for different usages. Profiles can also be used to isolate trust between different groups that you work with.
+
+M23

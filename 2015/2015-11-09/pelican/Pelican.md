@@ -1,4 +1,5 @@
 # Pelican
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-11-09/pelican/Pelican.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-11-09/pelican/) 
 
 Pelican is a static site generator, written in Python.
 

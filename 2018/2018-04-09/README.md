@@ -1,5 +1,5 @@
 # 2018-04-09
-#### 47
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-04-09/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-04-09/) 
 
 ## Classes, Descriptors & Metaclasses
 **Lawrence D'Oliveiro**
@@ -20,3 +20,5 @@ Peter delivered a presentation on **virtual environments** with one objective
 being *how **not** to stuff up your machine*.
 
 Refer to the folder *virtual_environments* for the slide show for Peter's presentation.
+
+M47

@@ -1,4 +1,5 @@
 # petl
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-06-10/petl/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-06-10/petl/) 
 
 **petl** is a general purpose Python package for extracting, transforming and
 loading tables of data.

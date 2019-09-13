@@ -1,5 +1,5 @@
 # 2015-05-11
-#### 15
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-05-11/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-05-11/) 
 
 ## Plots and Graphs in Python
 
@@ -12,3 +12,5 @@ See the sub-directory *matplotlib*.
 ### Libreoffice House
 
 Ian Stewart presented on how to draw a house in [LibreOffice](http://www.libreoffice.org/) Impress using Python. See the sub-directory *libreoffice*
+
+M15

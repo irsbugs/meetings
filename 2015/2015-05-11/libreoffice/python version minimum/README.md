@@ -1,5 +1,5 @@
 # Python Version Minimum
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-05-11/libreoffice/python version minimum/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-05-11/libreoffice/python version minimum/) 
 
 Presentation on 11 May 2015 at Hamilton Python User Group meeting.
 

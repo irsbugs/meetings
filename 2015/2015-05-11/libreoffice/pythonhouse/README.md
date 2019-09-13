@@ -1,4 +1,5 @@
 # UNO Bridge to LibreOffice
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-05-11/libreoffice/pythonhouse/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-05-11/libreoffice/pythonhouse/) 
 
 Python Universal Network Object (UNO) Bridge to LibreOffice/OpenOffice
 

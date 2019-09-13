@@ -1,5 +1,5 @@
 # LibreOffice and Python
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-04-13/libreoffice/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-04-13/libreoffice/) 
 
 This folder includes the LibreOffice using Python presentation in *four* parts
 and the `pyinsert.py` file.

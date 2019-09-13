@@ -1,4 +1,5 @@
 # Jupyter kernels
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-07-08/jupyter_kernels/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-07-08/jupyter_kernels/) 
 
 * [xeus-cling](https://github.com/QuantStack/xeus-cling) - Jupyter kernel for C++
 * Available through [Anaconda](https://www.anaconda.com/distribution/)

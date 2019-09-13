@@ -1,5 +1,5 @@
 # 2014-12-08
-#### 11
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-12-08/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-12-08/) 
 
 ## How to use data mining on publicly available data.
 
@@ -13,3 +13,5 @@ See the README in the sub-directory *datamining*
 Ian Stewart wrote python scripts to review the Linux English dictionary and strip 
 out the words that are not suitable when playing the game hangman. 
 See the sub-directory *hangman*.
+
+M11

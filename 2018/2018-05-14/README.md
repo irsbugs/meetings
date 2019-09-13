@@ -1,5 +1,5 @@
 # 2018-05-14
-#### 48
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-05-14/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-05-14/) 
 
 ## Install Jupyter Notebook on Windows and Linux
 **Ian Stewart** 
@@ -28,3 +28,5 @@ version of python that is being run.
 
 His slide show presetnation is */ian/Python Version Check.odp*. It includes an 
 appendix with an alternative approach supplied by Lawrence D'Oliveiro.
+
+M48

@@ -1,4 +1,5 @@
 # About
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/about.md) or [Website](https://irsbugs.github.io/meetings/) 
 
 This website is created using MkDocs.
 

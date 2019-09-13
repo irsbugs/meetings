@@ -1,5 +1,5 @@
 # 2019-06-10
-#### 60
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-06-10/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-06-10/) 
 
 ### ETL - Extract, Transform, Load
 
@@ -33,3 +33,5 @@ line drawing. A ipynb presentation highlights the line drawing sets that Liinux 
 Click the *launch binder* icon to run the ipynb file in Binders Jupyter server.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2019%2F2019-06-10%2Fian%2Fline_drawing.ipynb)
+
+M60

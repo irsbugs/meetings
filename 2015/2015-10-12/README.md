@@ -1,5 +1,5 @@
 # 2015-10-12
-#### 20
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-10-12/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-10-12/) 
 
 ## Command Line Parsing Frameworks
 
@@ -15,3 +15,5 @@ Also, in the form of a quiz, there is a presentation is designed to
 highlight the number of lines of code involved in using sys.argv, argparse, and plac.
 
 Refer to the sub-directories: *begins*, *plac*, *quiz*, and *sys.argv*.
+
+M20

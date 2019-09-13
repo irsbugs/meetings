@@ -1,4 +1,5 @@
 # Google Text to Speech
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2017/2017-05-08/ian-google-talk/README.md) or [Website](https://irsbugs.github.io/meetings/2017/2017-05-08/ian-google-talk/) 
 
 This presentation provides an introduction to the Text to Speech facility that is available from Google.
 

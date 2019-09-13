@@ -1,5 +1,5 @@
 # 2016-08-08
-#### 29
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-08-08/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-08-08/) 
 
 ## Nikola
 
@@ -15,3 +15,5 @@ His slide show presentation is available as *nikola.odp* or *nikola.pdf*.
 Click on the *launch binder* icon to launch the ipynb presentation using binder:
  
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2016%2F2016-08-08%2Fldo%2FPython%20Intro%20Talk%201%E2%88%952.ipynb)
+
+M29

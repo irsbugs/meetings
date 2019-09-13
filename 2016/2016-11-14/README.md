@@ -1,5 +1,5 @@
 # 2016-11-14
-#### 32
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-11-14/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-11-14/) 
 
 ## Flask - Website Framework
 
@@ -18,3 +18,5 @@ The http://hampug.pythonanywhere.com/ web-site was created using web2py framewor
 date of HamPUG meetings from the meetup.com website.
 
 Refer to the files in the sub-directory */web2py/*.
+
+M32

@@ -1,5 +1,5 @@
 # Python 2.7 to 3 migration
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-05-09/python2to3experiences/python2to3migration.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-05-09/python2to3experiences/) 
 
 Project
 -------

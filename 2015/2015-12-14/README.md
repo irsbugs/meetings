@@ -1,5 +1,5 @@
 # 2015-12-14
-#### 22
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/2015-12-14/README.md) or [Website](https://irsbugs.github.io/meetings/2015/2015-12-14/) 
 
 ## RPi.GPIO
 Ian Stewart presented the RPi.GPIO python module.
@@ -29,3 +29,5 @@ these programs is as follows:
 * 07_demo_ttk_2_switches.py – Receive input from two switches. NB: Run as sudo.
 * 08_demo_ttk_pwm_linear.py – Pulse Width Modulation with a linear frequency scale.
 * 09_demo_ttk_pwm_exponential.py - Pulse Width Modulation with an exponential scale.
+
+M22

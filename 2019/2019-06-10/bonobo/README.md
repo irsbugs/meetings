@@ -1,4 +1,5 @@
 # bonobo
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-06-10/bonobo/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-06-10/bonobo/) 
 
 Bonobo is a lightweight Extract-Transform-Load (ETL) framework for Python 3.5+.
 

@@ -1,5 +1,5 @@
 # web2py + meetup.com
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-11-14/web2py/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-11-14/web2py/) 
 
 * `meetup.py` uses the meetup.com API to retrieve the next upcoming meeting.
 

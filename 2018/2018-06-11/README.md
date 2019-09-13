@@ -1,5 +1,5 @@
 # 2018-06-11
-#### 49
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-06-11/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-06-11/) 
 
 ## Flask / Docker
 **Andreas Loef**
@@ -14,3 +14,5 @@ Link to repos:
 * [Talk](https://github.com/aginor/pugcowsay)
 * [Cowsay](https://github.com/aginor/cowsay-as-a-service)
 * [Cowbot](https://github.com/aginor/cowbot)
+
+M49

@@ -15,9 +15,7 @@
 # This program resides in:
 #   ~/.../meetings/
 #   Thus it is becomes part of the meeting repository
-# Creates a temporary mkdocs.yml that resides up-one-level
-#
-# ===
+# Creates a temporary mkdocs.yml file.
 
 import sys
 if sys.version_info[:2] < (3, 5):
@@ -26,8 +24,10 @@ if sys.platform != 'linux':
     sys.exit("Please use Linux.")
 
 import os
-import glob  # Requires V3.5+
+#import glob  # Requires V3.5+
+from glob import glob  # Requires pytohn V3.5+
 import subprocess
+import shutil
 
 # Debug Flag: -d or --debug.
 DEBUG = False
@@ -36,22 +36,42 @@ if "-d" in sys.argv or "--debug" in sys.argv:
 
 VERSION = str(0.1)
 REPO_DIR = "meetings"
+
+# Use mkdocs default directory's docs and site. Used in yaml config file.
+SITE_NAME = "HamPUG"
+DOCS_DIR = "docs"  # mkdocs source files. 
+SITE_DIR = "site"  # mkdocs website 
+# The contents of the above folders are excluded from inclusion of input files 
+# Optional additional folder to exclude files from inclusion
+EXCLUDE_DIR = "doc"
+
+GITHUB_ACCOUNT = "irsbugs"
 ORG = "Hamilton Python Users Group"
 GITHUB = "https://github.com/hampug/"
 URL = "https://hampug/github.io/meetings/"
-SITE = "site"
-# The next level up directory can have any name.
-# TOP_DIR = "hampug-website"
 
+# Create the Link prefixes. 
+# NOTE: No https:// at beginning, and No / at end
+# (https://github.com/irsbugs/meetings/blob/master/2014/2014-02-24/README.md)
+GITHUB_LINK_PREFIX = ("github.com{}{}{}meetings{}blob{}master"
+        .format(os.sep, GITHUB_ACCOUNT, os.sep, os.sep, os.sep))
+
+# (https://irsbugs.github.io/meetings/2014/2014-02-24/)
+WEBSITE_LINK_PREFIX = ("{}.github.io{}meetings"
+        .format(GITHUB_ACCOUNT, os.sep))
+
+HTTP_PREFIX =  "(https:{}{}".format(os.sep, os.sep)
 # Force launching the program from repo directory.
-# Thus level above can have any name. It will be accessed by reference.
-CWD = os.getcwd()
-cwd_list = CWD.split(os.sep)
-if DEBUG: print("cwd:", CWD, "cwd_list[-1]:", cwd_list[-1])
+cwd_list = os.getcwd().split(os.sep)
+if DEBUG: print("cwd:", os.getcwd(), "cwd_list[-1]:", cwd_list[-1])
 if cwd_list[-1] != REPO_DIR:
     sys.exit("Program launched from: {}. \n"
              "This program should reside and be launched this from the\n" 
-             "'{}' repository folder.".format(CWD, REPO_DIR))
+             "'{}' repository folder.".format(os.getcwd(), REPO_DIR))
+
+# Obtain the repo directory nesting level for use when splitting folder paths 
+NESTING_LEVEL = len(cwd_list) - 1
+if DEBUG: print("NESTING_LEVEL:", NESTING_LEVEL)
 
 # Get directory depth used for slicing prefix folders in mkdocs.yml:
 if DEBUG: print("len(cwd_list):", len(cwd_list))
@@ -62,142 +82,721 @@ if DEBUG: print("DEPTH:", DEPTH) # 5
 
 
 # Concept: Directory constants/ variables will end with the os seperator.
-cwd_list.pop()
-TOP_DIR = os.sep.join(cwd_list) + os.sep
-CWD = CWD + os.sep
-if DEBUG: print("TOP_DIR:", TOP_DIR, "CWD:", CWD)
-
-
-# If mkdocs can not reference up a dir, then need to os.chdir()
-# Else in CWD is python program and mkdocs.yml. THe mkdocs.yml needs to
-# have a site or docs in the TOP_DIR. Files created in TOP_DIR can be
-# deleted by this program. mkdocs.yml and docs/
+CWD = os.getcwd() + os.sep
+if DEBUG: print("CWD:", CWD)
 
 # Test if git exists
-if glob.glob(CWD + ".git") == []:
+if glob(CWD + ".git") == []:
     sys.exit("This folder, {}, is not a .git repository.".format(CWD))
-
-
-#print(INTRO)
-
-print(sys.argv)
-print(os.getcwd())  # /home/ian/hampug-meetings
-print(sys.argv[0])  # meetings/hampug-mkdocs
-print(os.sep)  # /
-
-#CWD = os.getcwd() + os.sep
-
-# Launch program inside of the repository meetings.
-# os.chdir("..") or similar to hampug-meetings
-#>>> os.getcwd()
-#'/home/ian/hampug-meetings'
-#>>> os.chdir("..")
-#>>> os.getcwd()
-#'/home/ian'
-
-def get_readme():
-    # https://www.mkyong.com/python/python-how-to-list-all-files-in-a-directory/
-    # https://docs.python.org/3/library/os.html#os.walk 
-
-    import os
-
-    path = CWD #'/home/ian/venv7'
-
-    files = []
-    # r=root, d=directories, f = files
-    for r, d, f in os.walk(path):
-        for file in f:
-            #if '.txt' in file:
-                #files.append(os.path.join(r, file))
-            files.append(os.path.join(r, file))
-    for f in files:
-        print(f)
-
 
 
 def get_file_dict(path):
     """
-    Files must reside off ~/.../meetings/...
-    The files must have an extension.
+    Files must reside off /.../REPO_DIR/...
+    The files must have an extension of .md.
     The absolute *path* is passed to this function. 
 
-    Return a dictionary with each path as a key containing a list of files.
-
-    The absolute paths are the keys. Another function will remove the prefixes 
-    of the absolute paths when the navigation tree is built
+    Return a dictionary with each path as a key containing a list of files
+    wiht their full path file names.
 
     Purge from dictionary any key for a folder that has no files.
+
+    glob returns a list: why not just run it multiple times and 
+    concatenate the results?
+    from glob import glob
+    ProjectFiles = glob('*.txt') + glob('*.mdown') + glob('*markdown')
+
+    """
+    file_dict = {}
+       
+    if DEBUG: print("Locating folders, build dictionary keys with empty list")
+
+    # Use glob to build a list of all folders.
+    # Filter out mkdocs source (docs_dir) and destination (site_dir) folders
+    # Note: Ability to exclude another directory with EXCLUDE_DIR constant.
+    folders = [folder for folder in glob(path + "**/", recursive=True) 
+            if not (folder.startswith(CWD + DOCS_DIR) 
+            or folder.startswith(CWD + SITE_DIR)
+            or folder.startswith(CWD + EXCLUDE_DIR))]
+
+    # Use list of folders to create keys for a dictionary.
+    # Each key initially has a None value. Later glob returns a list value.
+    for folder in sorted(folders):
+        if DEBUG: print(folder)      
+        file_dict[folder] = None
+
+    if DEBUG: 
+        for key in file_dict.keys():
+            print(key)
+
+    if DEBUG: print(file_dict) 
+    if DEBUG: print("\nlen(file_dict): ", len(file_dict))  # len(file_dict) : 145
+
+    # Use the file list to add filenames to the dictionary
+    if DEBUG: print("Adding files to dictionary")
+
+    # For each key add any full path and file name as a list to the keys value.
+    # Note that glob returns a list of the current directories markdown files.
+    # Plus .jpg files
+    for path in sorted(file_dict.keys()):
+        if DEBUG: print(path) 
+        file_dict[path] = glob(path + "*.md") + glob(path + "*.jpg")
+
+    # Check the dictionary
+    print()
+    for key, item in sorted(file_dict.items()):
+        if DEBUG: print(key, item)
+
+    # Remove keys for any folders that are empty. i.e. None
+    # Two stages as can not remove keys when iterating over a dictionary
+    remove_list = []
+    for key, value in file_dict.items():
+        #if value == []:
+        if value == None:
+            remove_list.append(key)
+
+    if DEBUG: print(remove_list)
+
+    #print("Folders ignored as they contain no markdown files:")
+    for key in remove_list:
+        print("Folder ignored - no markdown file:", key)
+    print("\n")
+
+    for key in remove_list:
+        file_dict.pop(key)
+
+
+    # Return the file_dict. Paths as keys and list of markdown files as values
+    if DEBUG: print("len(file_dict): ", len(file_dict))
+
+    for key, item in file_dict.items():
+        if DEBUG: print(key, len(item))
+
+    return file_dict
+
+
+def markdown_check(file_dict):
+    """
+    If all markdown files need to follow a set of layout rules, then this
+    routine may be tailored to check which files are non-compliant.
+
+    Rules:
+    1. Line at index 0 starts with "# Title" i.e. html <h1> title.
+    2. Line at index 1 is Links line. Link endswith two newlines
+    3. Line at index 2 is a newline. Terminates end of previous links line.
+    4. Line at index 3 is Introduction in normal font, of sub-title in ## H2. 
+    5. Meetings md file last line is meeting and sequencial number.  
+    """
+    # List markdown files not commencing the first line with "# "
+    # Not many so fix them with manual edits.
+    if DEBUG: print("Checking. Files that do not start with '# ':")
+    count = 0
+    for key, item in sorted(file_dict.items()):
+        for full_file_name in item:
+            if DEBUG: print(full_file_name)
+            if full_file_name.endswith(".md"):
+                with open(full_file_name, "r") as fin:
+                    s = fin.readlines()[0]
+                    if not s.startswith("# "):
+                        print(key, full_file_name, s)
+                        count += 1
+    if count != 0:
+        print("Total markdown files that do not start with # : {}\n".
+                format(count))
+
+    # Example of content of line 1 of a *.md file:
+    #Links: [Github]
+    # (https://github.com/irsbugs/meetings/blob/master/2014/2014-02-24/README.md)
+    # or [Website]
+    # (https://irsbugs.github.io/meetings/2014/2014-02-24/)
+
+    LINK_1 = "Links: [Github]"
+    LINK_2 = "or [Website]"
+    link_string = ""
+
+    for key, item in sorted(file_dict.items()):
+        for full_file_name in item:
+            if DEBUG: print(full_file_name)
+            # Example data:
+            # key: /home/ian/hampug-website/meetings/2014/2014-02-24/ 
+            # full: /home/ian/hampug-website/meetings/2014/2014-02-24/README.md
+
+            # Create link string
+            link_string = ""
+            # Links Github. Derive from full_file_name 
+            # full: /home/ian/hampug-website/meetings/2014/2014-02-24/README.md
+            gh_link_list = full_file_name.split(os.sep)  
+            gh_link_list = gh_link_list[NESTING_LEVEL + 1:]
+            #print(gh_link_list)
+            prefix_list = GITHUB_LINK_PREFIX.split(os.sep)
+            gh_link_list = prefix_list + gh_link_list
+            #print(gh_link_list) 
+            gh_link_string =  HTTP_PREFIX + os.sep.join(gh_link_list) + ") "
+            #print(gh_link_string)
+            link_string = LINK_1 + gh_link_string
+            #print(link_string)
+
+            # Links Website: Derive from key 
+            # key: /home/ian/hampug-website/meetings/2014/2014-02-24/ 
+            web_link_list = key.split(os.sep)  
+            web_link_list = web_link_list[NESTING_LEVEL + 1:]
+            #print(web_link_list)
+            prefix_list = WEBSITE_LINK_PREFIX.split(os.sep)
+            web_link_list = prefix_list + web_link_list
+            #print(web_link_list) 
+            web_link_string =  HTTP_PREFIX + os.sep.join(web_link_list) + ") "
+            #print(web_link_string)
+            # WRONG: Needs two newlines or next line is an extension of line 1.
+            # Only add one newline or it will grow
+            link_string += LINK_2 + web_link_string + "\n"
+            #print(link_string)           
+
+            # Include test to ensure that file is more than one line.
+            if full_file_name.endswith(".md"):
+                with open(full_file_name, "r+") as f:
+                    line_list = f.readlines()
+                    if len(line_list) > 1:
+                    # Whatever in line 1, pop it and then insert
+                        popped_string = line_list.pop(1)
+                        line_list.insert(1, link_string)   
+                    # Update the file
+                    f.seek(0)
+                    for line in line_list:
+                        f.write(line)
+                    f.truncate()
+
+    # Clean-up: If line 3 and 4 are both newline, then remove line 4.
+    # Repeat until no longer lists files with two blank lines.          
+    for key, item in sorted(file_dict.items()):
+        for full_file_name in item:
+            if full_file_name.endswith(".md"):
+                with open(full_file_name, "r+") as f:
+                    line_list = f.readlines()
+                    if len(line_list) > 4:
+                        if line_list[2] == "\n" and line_list[3] == "\n":
+                            popped_string = line_list.pop(3)
+                            print("Lines 3 & 4 newline:", full_file_name)
+                        # Update the file
+                        f.seek(0)
+                        for line in line_list:
+                            f.write(line)
+                        f.truncate()                        
+
+    """
+    # DO NOT USE AGAIN - Used in markdown_check(file_dict)
+    # This code was used once to move meeting numbering to the end of files.
+    # See which files have a second line of #### xx (where xx is a number)
+    for key, item in sorted(file_dict.items()):
+        for full_file_name in item:
+            if DEBUG: print(full_file_name)
+            if full_file_name.endswith(".md"):
+                with open(full_file_name, "r+") as fin:
+                    file_list = fin.readlines()
+                    line_1 = file_list[1]
+
+                    if line_1.startswith("#### "):
+                        # Remove line 1 #### xy
+                        line_1 = file_list.pop(1)
+                        print(line_1)
+                        line_1 = line_1.split(" ")[1]
+                        # Append to 
+                        file_list.append("\nM" + line_1)
+                        print(file_list)            
+
+                        #temp_file = "/home/ian/hampug-website/test_file.md"
+                        #with open(temp_file, "r+") as fout:
+                        #    fout.seek(0)
+                        #    for line in file_list:
+                        #        fout.write(line)
+                        #    fout.truncate()
+
+                        fin.seek(0)
+                        for line in file_list:
+                            fin.write(line)
+                        fin.truncate()
+    """
+     # TODO: Write more checking rules here...
+
+      
+def build_source_folder_symlinks(file_dict):
+    """
+    The source folder needs a directory structure created so it can 
+    then be filled with symbolic links to the source markdown files.  
+    DOCS_DIR is the folder for symbolic links. The default name is 'docs'.
+
+    makedirs() Recursive directory creation function. Like mkdir(), but makes 
+    all intermediate-level directories needed to contain the leaf directory.
+    """
+    # Remove the temporary DOCS_DIR, if it exists.
+    shutil.rmtree(DOCS_DIR, ignore_errors=True)
+
+    #try:
+    #    shutil.rmtree(DOCS_DIR)
+    #except FileNotFoundError as e:
+    #    if DEBUG: print("FileNotFoundError: {}".format(e))
+    #    pass
+
+    # Create the directory structure in DOCS_DIR
+    for key, item in sorted(file_dict.items()):
+        for full_file_name in item:
+            key_list = key.split(os.sep)
+            key_list.insert(NESTING_LEVEL + 1, DOCS_DIR)
+            folder = os.sep.join(key_list)            
+
+            # Check if folder exists. If it doesn't then make folder path.
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+            else:
+                if DEBUG: print("Folder already exists:", folder)
+
+            #try:
+            #    os.mkdir(folder)
+            #except OSError:
+            #    print ("Creation of the directory %s failed" % folder)     
+            #else:
+            #    if DEBUG: print ("Successfully created the directory %s" 
+            #    % folder)
+            #    pass
+
+            # Symlink path and name creation
+            full_file_name_list = full_file_name.split(os.sep)
+            full_file_name_list.insert(NESTING_LEVEL + 1, DOCS_DIR)
+            symlink = os.sep.join(full_file_name_list)
+            
+            # Create symbolic link
+            os.symlink(full_file_name, symlink)
+    
+
+def build_navigation(file_dict):
+    """
+    NOT IN USE. 
+    mkdocs build command will automatically create the navigation. 
+
+    If a nav: tree is built, then append the return string from this function
+    to YAML_TEMPLATE.
+
+    Build the nav: string for use in mkdocs.yml
+    Requires: file_dict
+    NESTING_LEVEL constant could be used.
+    """
+    s = "\nnav:\n"
+    for key, item in file_dict.items():
+        # item contains a list of full path and filname of markdown files.
+        for file_name in item:
+            # item is a list
+            key_list = key.split(os.sep)
+            if DEBUG: print(key_list)
+            # ['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
+
+            key_list = key_list[DEPTH:]
+            key_indent = len(key_list)
+            if DEBUG: print(key_list) # ['2019', '']
+            key_short = os.sep.join(key_list)
+            if DEBUG: print(key_short) # 2019/
+            for file_name in item:
+                with open(key + file_name, "r") as fin:
+                    title = fin.readlines()[0]
+                    title = title[2:]  # Strip the '# '
+                    title = title.strip() # Strip the n/l and trailing spaces
+        
+                path = key_short + file_name
+                if DEBUG: print(path) # 2019/README.md
+                prefix = " " * key_indent * 4 + "- "
+                path = ": '"+ path + "'"
+                if DEBUG: print(prefix + title + path)
+                s += prefix + title + path + "\n"
+
+            #nav:
+            #    - About: 'about.md'
+            #    - Meetings: 'README.md'
+            #        - 2014: '2014/README.md'
+            #            - 2014-02-24: '2014/2014-02-24/README.md'
+            #            - 2014-03-10: '2014/2014-03-10/README.md'
+            #            - 2014-04-14: '2014/2014-04-14/README.md'
+            #            - 2014-05-12: '2014/2014-05-12/README.md'
+            #            - 2014-06-09: '2014/2014-06-09/README.md'
+            #                - Spyder: '2014/2014-06-09/spyderlib/README.md'
+ 
+            #['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
+            #['2019', '']
+            #2019/
+            #2019/extra.md
+            #    -: '2019/extra.md'
+            #2019/README.md
+            #    -: '2019/README.md'
+    s += "\n"
+    if DEBUG: print(s)
+    return s
+
+def run_mkdocs(mkdocs_file):
+    """
+    Create the file mkdocs.yml in folder CWD
+    Clear any existing website files in SITE_DIR. Default is 'site'
+
+    """
+    # Write the mkdocs yaml config file to CWD / REPO top level directory.
+    with open("mkdocs.yml", "w") as fout:
+        fout.write(mkdocs_file)
+
+    # Remove the (temporary) SITE_DIR, if it exists.
+    shutil.rmtree(SITE_DIR, ignore_errors=True)
+    #try:
+    #    shutil.rmtree(SITE_DIR)
+    #except FileNotFoundError as e:
+    #    if DEBUG: print("FileNotFoundError: {}".format(e))
+    #    pass    
+
+    # Run mkdocs build
+    command = "mkdocs build --clean"
+    completed = subprocess.run(command, shell=True)
+    if DEBUG: print('returncode:', completed.returncode) 
+
+    # Check if want to continue.
+    prompt = "About to proceed with git update. Do you want to continue? [Y/n]: "
+    response = input(prompt)
+    if response == "":
+        response = "y"
+    if response[0].lower() not in ("y", "t", 1):
+        sys.exit("Exiting...")
+
+
+    # Deploy to github pages:
+    # This will do a build and then push contents of site up to Github gh-pages
+    #
+    # $ mkdocs gh-deploy
+    print("mkdocs gh-deploy")
+    command = "mkdocs gh-deploy"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    # Now clean up the folder. Remove docs and site
+    print("Removing folder: {}".format(DOCS_DIR))
+    shutil.rmtree(DOCS_DIR, ignore_errors=True)
+
+    #try:
+    #    shutil.rmtree(DOCS_DIR)
+    #except FileNotFoundError as e:
+    #    if DEBUG: print("FileNotFoundError: {}".format(e))
+    #    pass
+
+
+    print("Removing folder: {}".format(SITE_DIR))
+    shutil.rmtree(SITE_DIR, ignore_errors=True)
+    #try:
+    #    shutil.rmtree(SITE_DIR)
+    #except FileNotFoundError as e:
+    #    if DEBUG: print("FileNotFoundError: {}".format(e))
+    #    pass
+
+    # Leave the mkdocs.yml file incase want to locally use mkdocs.
+
+    #command = "rsync -r ../docs/ docs/"
+    #completed = subprocess.run(command, shell=True)
+    #print('returncode:', completed.returncode)
+
+    command = "git status"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git add --all"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git commit -m 'update website'"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+    command = "git push -u origin master"
+    completed = subprocess.run(command, shell=True)
+    print('returncode:', completed.returncode)
+
+
+def program_info():
+    """
+    Provide some information on program launch.
+    """
+    print("Python3 program: {}".format(sys.argv[0]))
+    print("Version: {}".format(VERSION))
+    print("Launched from: {}".format(CWD))
+    print("Contains .git repository: {}".format(os.path.isdir(CWD + ".git")))
+    # TODO: Put some more intro info...
+
+    #dir_list = CWD.split("/")
+    # print(len(dir_list), dir_list, dir_list[-2])
+    # 5 ['', 'home', 'ian', 'hampug-meetings', ''] hampug-meetings
+    #if dir_list[-2] != LAUNCH_DIR:
+    #print(os.path.isfile("/home/ian/hampug-meetings/meetings/mkdocs-auto"))
+    #print(os.path.isdir("/home/ian/hampug-meetings/meetings/.git"))
+
+def help():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(INTRO)
+        sys.exit()
+
+def main():
+    help()
+
+    # Intro information
+    program_info()
+
+    # Create a dictionary. 
+    # Keys are folder paths which have .md files in them.
+    # Values are lists of folder paths and markdown filenames 
+    # CWD will be the Github Repository
+    file_dict = get_file_dict(CWD)
+    
+    # Checking
+    for key, value in file_dict.items():
+        if DEBUG: print(key, len(value), value)
+    
+    # Perform any desired layout checking of the markdown files
+    # Outputs to console the filenames that are non-compliant.
+    markdown_check(file_dict)
+
+    # Build the source folded which has symbolic links to all the markdown files
+    build_source_folder_symlinks(file_dict)
+
+
+    # TODO: Nav path is automatically created by mkdocs.
+    # A manually built nav path could be made at this point.
+    #nav_string = build_navigation(file_dict)
+    #if DEBUG: print(nav_string)
+    # If nav_string created then append to YAML_TEMPLATE. E.g.
+    #mkdocs_file = YAML_TEMPLATE + nav_string
+
+    # Use YAML Template as config file. nav: string not required. Auto-generated.
+    mkdocs_file = YAML_TEMPLATE
+    if DEBUG: print(mkdocs_file)
+    run_mkdocs(mkdocs_file)
+
+    # End
+    sys.exit()
+
+# Stuff long-winded constants here...
+# The template for building the mkdocs.yml file
+YAML_TEMPLATE = """# mkdocs.yml firle. Generated by mkdocs-auto program
+site_name: {}
+docs_dir: {}      # Source files. Default is docs
+site_dir: {}      # Temp website files until mkdocs gh-deploy performed.
+
+# Theme
+# The 'material' theme uses a different search from the default mkdocs theme.
+# https://squidfunk.github.io/mkdocs-material/
+
+theme:
+    name: 'material'  # default is 'mkdocs' theme
+    palette:
+        primary: 'indigo'
+        accent: 'indigo'
+
+# Valid values for 'material' palette colours are: 
+# red, pink, purple, deep purple, indigo, blue, light blue, cyan, teal, 
+# green, light green, lime, yellow, amber, orange, deep orange, 
+# brown, grey, blue grey and white. 
+# The last four colors can only be used as a primary color.
+# Default colour is indigo
+
+
+# Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
+# NOT REQUIRED? - Already filtered so only have markdown files.
+# Exclude the /docs/ folder (the website) in the meetings source folder
+# Since meetings is the source, then just need doc/* to exclude
+# This is later used to hold the website via:
+# rsync -r docs/ meetings/docs/ 
+# Exclude: 
+#   Impress presentation files (.opd) 
+#   Jupyter Notebook (.ipynb)
+# '- search' needs to be added to the plugins list.
+
+plugins:
+    - exclude:
+        glob:
+            - docs/* 
+            - "*.odp"
+            - "*.ipynb"
+            - "*.yml"
+            #- about.md
+    - search:
+
+""".format(SITE_NAME, DOCS_DIR, SITE_DIR)
+
+TEMPLATE = """site_name: HamPUG
+docs_dir: doc  # Source files. default is docs
+site_dir: site      # Website files. (Temporary) Default is site.
+                    # Website files are later rsync'ed to meetings/docs
+
+# The material theme uses a different search from the default mkdocs theme
+theme: 
+    name: 'material'  # default is 'mkdocs' theme
+    palette:
+        primary: 'indigo'
+        accent: 'indigo'
+
+# Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
+# Exclude the /docs/ folder (the website) in the meetings source folder
+# Since meetings is the source, then just need doc/* to exclude
+# This is later used to hold the website via:
+# rsync -r docs/ meetings/docs/ 
+# Exclude: 
+#   Impress presentation files (.opd) 
+#   Jupyter Notebook (.ipynb)
+# '- search' needs to be added to the plugins list.
+
+plugins:
+    - exclude:
+        glob:
+            - docs/* 
+            - "*.odp"
+            - "*.ipynb"
+            - "*.yml"
+            #- about.md
+    - search:
+
+"""
+
+INTRO = """
+Welcome to the program '{}' version {}.
+This program is for creating a Github project website for:
+{}.
+Their Github account is: {}
+The specific repository is: '{}'.
+The created website will have the URL: {}
+
+It is assumed that the current document layout on Github is in a sorted 
+fashion. The website navigation will be based on a sort of the Github
+repository. 
+
+A requirement is that all markdown documents commence the first
+line with a single hash, '#', and space, followed by a brief title. This
+title is used in the website navigation.
+
+This program assumes that you have a local git repository called '{}'
+and that this program is being run from that repository. For example your
+local folders may be ~/hampug-website/meetings/
+
+Prerequisites:
+0. This program is already in the top level Github meetings repository.
+1. Run this program from a virtual environment which includes:
+    o Python3.5 or higher.
+    o mkdocs version 1.0.4 or higher.
+    o mkdocs-exclude 1.0.2 or higher. Plugin to exclude files or folders.
+    o mkdocs-material 4.4.2 or higher. Theme plugin
+    o git version 2.17.1 or higher.
+2. In the {} Github repository {} 'Clone or Download' the repository so that 
+    it becomes one of your Github repositories.
+3. Create a local folder. E.g. $ mkdir github-website
+4. Change directory to that folder. E.g. $ cd github-website
+5. Clone Github to the local directory
+    $ git cloan https://github.com/MY_GITHUB_ACCOUNT/{}.git
+    This will create the folder {} which will be a git repository with a .git
+    folder off it.
+6. Set default to meetings. E.g. cd meetings.
+7. Run this program. From this meetings directory.
+8. The mkdocs.yml file and the /docs folder containing the website are placed
+    into the directory above meetings.
+9. Execute mkdocs commands from this directory as follows:
+    (venv) ian:~/website/meetings$ cd .. ; mkdocs build ; cd meetings
+    INFO    -  Cleaning site directory 
+    INFO    -  Building documentation to directory: /home/ian/meetings/docs 
+
+The program will do the following: 
+1. Review the '{}' repository and locate all markdown files.
+2. Check all markdown files meet the 'first line' requirement.
+3. Build the nav: structure.
+4. Build mkdocs.yml
+5. Up one level create the folder for the website: {}
+6. Second line requirment is "Links: github" 
+7. Run mkdocs to build the website
+8. Run rsync to move the website into the respository off the /docs folder
+
+When the program terminates you may then:
+1. Test the website with mkdocs serve
+2. Push the .git repository to Github. The changes will be the /docs folder.
+3. Test the updated website at: {}
+""".format(sys.argv[0], VERSION, ORG, GITHUB, REPO_DIR, URL, REPO_DIR, 
+GITHUB, REPO_DIR, REPO_DIR, REPO_DIR, REPO_DIR, URL, URL)
+
+
+if __name__=="__main__":
+    main()
+
+
+"""
+Images
+
+Here's our logo (hover to see the title text):
+
+Inline-style: 
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
+Reference-style: 
+![alt text][logo]
+
+[logo]: https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 2"
+
+Here's our logo (hover to see the title text):
+===
+
+Notes:
+https://docs.python.org/3/library/glob.html
+>>> import glob
+>>> dir(glob)
+['__all__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', '_glob0', '_glob1', '_glob2', '_iglob', '_ishidden', '_isrecursive', '_iterdir', '_rlistdir', 'escape', 'fnmatch', 'glob', 'glob0', 'glob1', 'has_magic', 'iglob', 'magic_check', 'magic_check_bytes', 'os', 're']
+>>> 
+
+If recursive is true, the pattern “**” will match any files and zero or more directories and subdirectories. If the pattern is followed by an os.sep, only directories and subdirectories match.
+Changed in version 3.5: Support for recursive globs using “**”.
+
+https://stackoverflow.com/questions/3964681/find-all-files-in-a-directory-with-extension-txt-in-python
+
+You can use glob:
+
+import glob, os
+os.chdir("/mydir")
+for file in glob.glob("*.txt"):
+    print(file)
+
+or simply os.listdir:
+
+import os
+for file in os.listdir("/mydir"):
+    if file.endswith(".txt"):
+        print(os.path.join("/mydir", file))
+
+or if you want to traverse directory, use os.walk:
+
+import os
+for root, dirs, files in os.walk("/mydir"):
+    for file in files:
+        if file.endswith(".txt"):
+             print(os.path.join(root, file))
+
+
+for file in [f for f in os.listdir('/mydir') if f.endswith('.txt')]:
+
+===
 
     Uses: glob module
     Requires: Python 3.5 or better
 
     # https://www.mkyong.com/python/python-how-to-list-all-files-in-a-directory/ 
     # https://docs.python.org/3/library/glob.html
-    """
-    #path = '/home/ian/venv7/'  # Requires final /
-    #path = '/home/ian/hampug-meetings/'
 
-    file_dict = {}
+    glob uses:
+    os.scandir() and fnmatch.fnmatch() 
+    os.path.expanduser() and os.path.expandvars().)
 
-    # Build a dictionary of an empty list, where key is a folder path.        
-    if DEBUG: print("Locating folders, build dictionary keys with empty list")
-    folders = [f for f in glob.glob(path + "**/", recursive=True)]
-    for folder in sorted(folders):
-        if DEBUG: print(folder)
-        file_dict[folder] = []
-
-    if DEBUG: print(file_dict) # , '/home/ian/venv7/share/python-wheels/': []}
-    if DEBUG: print("len(file_dict): ", len(file_dict))  # len(file_dict) : 495
-
-
-    # Use the file list to add filenames to the dictionary
-    if DEBUG: print("Adding files to dictionary")
-    if DEBUG: print(glob.glob(path + "**/*.*", recursive=True))
-    # File needs an extension to be recognised. i.e. glob *.*
-    file_list = glob.glob(path + "**/*.*", recursive=True)
-    for file in file_list:
-        file_split = file.split("/")
-        file_name = file_split.pop()
-        key = "/".join(file_split)
-        key = key + "/"
-        if DEBUG: print(key, file_name)
-        file_dict[key].append(file_name)
-
-    if DEBUG: print(file_dict)
-    if DEBUG: print("len(file_dict): ", len(file_dict))
-
-    # Remove keys for any folders that are empty.
-    # Two stages as can not remove keys when iterating over a dictionary
-    remove_list = []
-    for key, value in file_dict.items():
-        if value == []:
-            remove_list.append(key)
-
-    if DEBUG: print(remove_list)
-
-    print("\nWARNING: Folders contain no files. May have sub-folders:")
-    for key in remove_list:
-        print(key)
-    print("\n")
-
-    for key in remove_list:
-        file_dict.pop(key)
-
-    if DEBUG: print("len(file_dict): ", len(file_dict))
-
-    for key, value in file_dict.items():
-        if DEBUG: print(key, len(value))
-
-    return file_dict
-
+    logs = [log for log in glob('/var/opt/server/log/current/*') 
+        if not os.path.isdir(log)]
+===
 
 def get_markdown_files(file_dict):
-    """
+    '''
     Build a dictionary of the markdown files. i.e. file extension of .md
     Needs to be a list as may be more than 1 x .md in a folder.
     E.g.
     /home/ian/hampug-website/meetings/2019/ ['extra.md', 'README.md']
-    """
+    '''
 
     markdown_dict = {}
     for key, item in file_dict.items():
@@ -235,67 +834,29 @@ def get_markdown_files(file_dict):
 
     return markdown_dict
 
-def build_navigation(markdown_dict):
-    """
-    NOT USED: Use auto config of nav
-    What if 2 x md in same folder. Does markdown_dict work?
-    Build the nav: string for use in mkdocs.yml
-    Requires: markdown_dict
-        DEPTH of "meetings" folder in all keys S/B: 4
-    """
-    s = "\nnav:\n"
-    for key, item in markdown_dict.items():
-        # item is a list
-        key_list = key.split(os.sep)
-        if DEBUG: print(key_list)
-        # ['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
+===
 
-        key_list = key_list[DEPTH:]
-        key_indent = len(key_list)
-        if DEBUG: print(key_list) # ['2019', '']
-        key_short = os.sep.join(key_list)
-        if DEBUG: print(key_short) # 2019/
-        for file_name in item:
-            with open(key + file_name, "r") as fin:
-                title = fin.readlines()[0]
-                title = title[2:]  # Strip the '# '
-                title = title.strip() # Strip the n/l and trailing spaces
+    #folders = [f for f in glob.glob(path + "**/", recursive=True)]
+
+    # Filer out !error
+    # files = glob.glob('C:/script_testing/**/123*[!error].txt`, recursive=True
     
-            path = key_short + file_name
-            if DEBUG: print(path) # 2019/README.md
-            prefix = " " * key_indent * 4 + "- "
-            path = ": '"+ path + "'"
-            if DEBUG: print(prefix + title + path)
-            s += prefix + title + path + "\n"
+    #files = [fn for fn in glob('somepath/*.txt') 
+    #     if not os.path.basename(fn).startswith('eph')]
 
-            #nav:
-            #    - About: 'about.md'
-            #    - Meetings: 'README.md'
-            #        - 2014: '2014/README.md'
-            #            - 2014-02-24: '2014/2014-02-24/README.md'
-            #            - 2014-03-10: '2014/2014-03-10/README.md'
-            #            - 2014-04-14: '2014/2014-04-14/README.md'
-            #            - 2014-05-12: '2014/2014-05-12/README.md'
-            #            - 2014-06-09: '2014/2014-06-09/README.md'
-            #                - Spyder: '2014/2014-06-09/spyderlib/README.md'
+    #Use glob and filter out all the dirs:
+    #folders = [folder for folder in glob.glob(path + "**/", recursive=True) 
+    #        if not os.path.isdir("docs")]
+
+===
+
  
-            #['', 'home', 'ian', 'hampug-website', 'meetings', '2019', '']
-            #['2019', '']
-            #2019/
-            #2019/extra.md
-            #    -: '2019/extra.md'
-            #2019/README.md
-            #    -: '2019/README.md'
-    s += "\n"
-    if DEBUG: print(s)
-    return s
-        
-def run_mkdocs(mkdocs_file):
-    """
+def run_mkdocs_old(mkdocs_file):
+    '''
     MkDocs is run up-one-level (TOP_DIR) from CWD, so it finds its folders OK.
     Create the file mkdocs.yml up-one-level
     If folder doesn't exist may need to create docs/ up-one-level
-    """
+    '''
     with open(TOP_DIR + "mkdocs.yml", "w") as fout:
         fout.write(mkdocs_file)
 
@@ -350,229 +911,509 @@ def run_mkdocs(mkdocs_file):
     completed = subprocess.run(command, shell=True)
     print('returncode:', completed.returncode)
 
+===
 
-def create_data():
-    # In the meetings folder create mock data
-    pass
+def build_doc_folders(markdown_dict):
+    '''
+    The source folder (docs) needs a directory structure created so it can 
+    then be filled with symbolic links to the source files.
+    Use subprocess to create the folders
+    '''
+    # For a clean start, Erase current source folder (docs)
+    # docs_dir: docs
+
+    source_folder = CWD + "doc/"    
+    import shutil
+
+    
+    shutil.rmtree(source_folder)
+    for key, item in markdown_dict.items():
+        key_list = key.split(os.sep)
+        position = key_list.index("meetings")
+        #print(position, key_list[position], key_list[position + 1])
+        key_list.insert(position + 1, "doc")
+        #print(key_list)
+        folder = os.sep.join(key_list)
+        #print(folder)
         
+        #path = "/tmp/year"
 
-def program_info():
-    """
-    Provide some information on program launch.
-    """
-    print("Python3 program: {}".format(sys.argv[0]))
-    print("Version: {}".format(VERSION))
-    print("Launched from: {}".format(CWD))
-    print("Contains .git repository: {}".format(os.path.isdir(CWD + ".git")))
+        # define the access rights
+        #access_rights = 0o755
 
+        try:
+            #os.mkdir(path, access_rights)
+            os.mkdir(folder)
+        except OSError:
+            print ("Creation of the directory %s failed" % folder)
+        else:
+            print ("Successfully created the directory %s" % folder)
 
-    #dir_list = CWD.split("/")
-    # print(len(dir_list), dir_list, dir_list[-2])
-    # 5 ['', 'home', 'ian', 'hampug-meetings', ''] hampug-meetings
-    #if dir_list[-2] != LAUNCH_DIR:
-    #print(os.path.isfile("/home/ian/hampug-meetings/meetings/mkdocs-auto"))
-    #print(os.path.isdir("/home/ian/hampug-meetings/meetings/.git"))
+        # Create symbolic link
+        # os.symlink(src, dst)
+        src = key + item[0]
+        dst = folder + item[0]
+        os.symlink(src, dst) 
 
-def help():
-    if "-h" in sys.argv or "--help" in sys.argv:
-        print(INTRO)
-        sys.exit()
+====       
 
-def main():
-    help()
+def get_readme():
+    # https://www.mkyong.com/python/python-how-to-list-all-files-in-a-directory/
+    # https://docs.python.org/3/library/os.html#os.walk 
 
-    program_info()
+    import os
 
-    #get_readme()
-    
-    #file_dict = get_file_dict('/home/ian/venv7/')
+    path = CWD #'/home/ian/venv7'
 
-
-    # Get a dictionary of all files in 
-    file_dict = get_file_dict(CWD)
-    
-
-    #file_dict = get_file_dict('/home/ian/hampug-meetings/')
-
-    for key, value in file_dict.items():
-        if DEBUG: print(key, len(value))
+    files = []
+    # r=root, d=directories, f = files
+    for r, d, f in os.walk(path):
+        for file in f:
+            #if '.txt' in file:
+                #files.append(os.path.join(r, file))
+            files.append(os.path.join(r, file))
+    for f in files:
+        print(f)
 
 
+(venv7) ian@X200:~/hampug-website/meetings$ python3 mkdocs-sym-auto
+Python3 program: mkdocs-sym-auto
+Version: 0.1
+Launched from: /home/ian/hampug-website/meetings/
+Contains .git repository: True
 
-    # len(file_dict):  147
-    # len(file_dict):  138  # 9 empty folders:
-
-    markdown_dict = get_markdown_files(file_dict)
-
-    for key, value in markdown_dict.items():
-        print(key, len(value))
-
-    sys.exit()
+Folders ignored as they contain no markdown files:
 
 
-    # OK to here 110 .md files all start with # 
-    # TODO: Build the nav path
-    nav_string = build_navigation(markdown_dict)
-    if DEBUG: print(nav_string)
+Total markdown files that do not start with # : 0
 
-    #  nav: string not required auto-generated.
-    mkdocs_file = TEMPLATE  #  + nav_string
-    if DEBUG: print(mkdocs_file)
+Creation of the directory /home/ian/hampug-website/meetings/docs/ failed
+Creation of the directory /home/ian/hampug-website/meetings/docs/2018/2018-06-11/ failed
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+About to proceed with git update. Do you want to continue? [Y/n]: n
+Exiting...
+(venv7) ian@X200:~/hampug-website/meetings$ git status
+On branch master
+Your branch is up to date with 'origin/master'.
 
-    run_mkdocs(mkdocs_file)
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
 
-    sys.exit()
+	docs/
+	mkdocs.yml
+	site/
 
-    #get_glob_short_path()
-    filter_prefix = "/home/ian/"
-    filter_prefix = '/home/ian/hampug-meetings/'
-    #filter_prefix = '/home/ian/venv7/'  
-    build_nav(file_dict, filter_prefix)
-    #build_nav(file_dict)
+nothing added to commit but untracked files present (use "git add" to track)
+(venv7) ian@X200:~/hampug-website/meetings$ git status
+
+(venv7) ian@X200:~/hampug-website/meetings$ git add --all
+(venv7) ian@X200:~/hampug-website/meetings$ git commit -m 'switch to symlinks'
+[master 5f28fbd] switch to symlinks
+ 267 files changed, 488588 insertions(+)
+ create mode 120000 docs/2014/2014-02-24/README.md
+ create mode 120000 docs/2014/2014-03-10/README.md
+ create mode 120000 docs/2014/2014-04-14/README.md
+ create mode 120000 docs/2014/2014-05-12/README.md
+ create mode 120000 docs/2014/2014-06-09/README.md
+ create mode 120000 docs/2014/2014-06-09/spyderlib/README.md
+ create mode 120000 docs/2014/2014-07-14/README.md
+ create mode 120000 docs/2014/2014-08-18/README.md
+ create mode 120000 docs/2014/2014-09-08/README.md
+ create mode 120000 docs/2014/2014-10-13/README.md
+ create mode 120000 docs/2014/2014-10-13/diy_home_monitoring/README.md
+ create mode 120000 docs/2014/2014-10-13/gooey/README.md
+ create mode 120000 docs/2014/2014-11-10/README.md
+ create mode 120000 docs/2014/2014-12-08/README.md
+ create mode 120000 docs/2014/2014-12-08/datamining/README.md
+ create mode 120000 docs/2014/README.md
+ create mode 120000 docs/2015/2015-02-09/README.md
+ create mode 120000 docs/2015/2015-03-09/README.md
+ create mode 120000 docs/2015/2015-04-13/README.md
+ create mode 120000 docs/2015/2015-04-13/libreoffice/README.md
+ create mode 120000 docs/2015/2015-05-11/README.md
+ create mode 120000 docs/2015/2015-05-11/libreoffice/README.md
+ create mode 120000 docs/2015/2015-05-11/libreoffice/python version minimum/README.md
+ create mode 120000 docs/2015/2015-05-11/libreoffice/pythonhouse/README.md
+ create mode 120000 docs/2015/2015-05-11/matplotlib/README.md
+ create mode 120000 docs/2015/2015-06-08/README.md
+ create mode 120000 docs/2015/2015-07-13/README.md
+ create mode 120000 docs/2015/2015-08-10/README.md
+ create mode 120000 docs/2015/2015-09-14/README.md
+ create mode 120000 docs/2015/2015-10-12/README.md
+ create mode 120000 docs/2015/2015-10-12/begins/README.md
+ create mode 120000 docs/2015/2015-10-12/plac/README.md
+ create mode 120000 docs/2015/2015-10-12/quiz/README.md
+ create mode 120000 docs/2015/2015-10-12/sys.argv/README.md
+ create mode 120000 docs/2015/2015-11-09/README.md
+ create mode 120000 docs/2015/2015-11-09/pelican/Pelican.md
+ create mode 120000 docs/2015/2015-11-09/pyudev/README.md
+ create mode 120000 docs/2015/2015-12-14/README.md
+ create mode 120000 docs/2015/README.md
+ create mode 120000 docs/2016/2016-02-08/README.md
+ create mode 120000 docs/2016/2016-03-14/README.md
+ create mode 120000 docs/2016/2016-04-11/README.md
+ create mode 120000 docs/2016/2016-04-11/ncea presentation/README.md
+ create mode 120000 docs/2016/2016-04-11/prime_number/README.md
+ create mode 120000 docs/2016/2016-05-09/README.md
+ create mode 120000 docs/2016/2016-05-09/python2to3experiences/python2to3migration.md
+ create mode 120000 docs/2016/2016-06-13/README.md
+ create mode 120000 docs/2016/2016-07-11/README.md
+ create mode 120000 docs/2016/2016-08-08/README.md
+ create mode 120000 docs/2016/2016-09-12/README.md
+ create mode 120000 docs/2016/2016-09-12/ian-python_art/README.md
+ create mode 120000 docs/2016/2016-09-12/ian-tkinter_templates/README.md
+ create mode 120000 docs/2016/2016-10-10/README.md
+ create mode 120000 docs/2016/2016-11-14/README.md
+ create mode 120000 docs/2016/2016-11-14/web2py/README.md
+ create mode 120000 docs/2016/2016-12-13/README.md
+ create mode 120000 docs/2016/README.md
+ create mode 120000 docs/2017/2017-02-13/README.md
+ create mode 120000 docs/2017/2017-03-13/README.md
+ create mode 120000 docs/2017/2017-04-10/README.md
+ create mode 120000 docs/2017/2017-04-10/ian/README.md
+ create mode 120000 docs/2017/2017-05-08/README.md
+ create mode 120000 docs/2017/2017-05-08/ian-client-server/README.md
+ create mode 120000 docs/2017/2017-05-08/ian-google-talk/README.md
+ create mode 120000 docs/2017/2017-06-12/README.md
+ create mode 120000 docs/2017/2017-07-10/README.md
+ create mode 120000 docs/2017/2017-08-10/README.md
+ create mode 120000 docs/2017/2017-09-11/README.md
+ create mode 120000 docs/2017/2017-10-09/README.md
+ create mode 120000 docs/2017/2017-10-09/ian/README.md
+ create mode 120000 docs/2017/2017-11-13/README.md
+ create mode 120000 docs/2017/2017-12-11/README.md
+ create mode 120000 docs/2017/README.md
+ create mode 120000 docs/2018/2018-02-12/README.md
+ create mode 120000 docs/2018/2018-03-12/README.md
+ create mode 120000 docs/2018/2018-03-12/ian/README.md
+ create mode 120000 docs/2018/2018-04-09/README.md
+ create mode 120000 docs/2018/2018-05-14/README.md
+ create mode 120000 docs/2018/2018-05-14/ian-jupiter/README.md
+ create mode 120000 docs/2018/2018-05-14/ian-python-version/README.md
+ create mode 120000 docs/2018/2018-05-14/my_first_notebook/README.md
+ create mode 120000 docs/2018/2018-06-11/README.md
+ create mode 120000 docs/2018/2018-06-11/presentation.md
+ create mode 120000 docs/2018/2018-07-09/README.md
+ create mode 120000 docs/2018/2018-08-13/README.md
+ create mode 120000 docs/2018/2018-09-10/README.md
+ create mode 120000 docs/2018/2018-09-10/waitress/README.md
+ create mode 120000 docs/2018/2018-10-08/README.md
+ create mode 120000 docs/2018/2018-10-08/fifo/README.md
+ create mode 120000 docs/2018/2018-11-12/README.md
+ create mode 120000 docs/2018/2018-12-10/README.md
+ create mode 120000 docs/2018/README.md
+ create mode 120000 docs/2019/2019-02-11/README.md
+ create mode 120000 docs/2019/2019-03-11/README.md
+ create mode 120000 docs/2019/2019-03-11/local_bin/README.md
+ create mode 120000 docs/2019/2019-03-11/rpi3_and_tensorflow/README.md
+ create mode 120000 docs/2019/2019-04-08/README.md
+ create mode 120000 docs/2019/2019-05-13/README.md
+ create mode 120000 docs/2019/2019-06-10/README.md
+ create mode 120000 docs/2019/2019-06-10/bonobo/README.md
+ create mode 120000 docs/2019/2019-06-10/bubbles/README.md
+ create mode 120000 docs/2019/2019-06-10/data/README.md
+ create mode 120000 docs/2019/2019-06-10/ian/README.md
+ create mode 120000 docs/2019/2019-06-10/pandas/README.md
+ create mode 120000 docs/2019/2019-06-10/petl/README.md
+ create mode 120000 docs/2019/2019-07-08/README.md
+ create mode 120000 docs/2019/2019-07-08/jupyter_kernels/README.md
+ create mode 120000 docs/2019/2019-07-08/pep484_type_hinting/README.md
+ create mode 120000 docs/2019/2019-08-12/README.md
+ create mode 120000 docs/2019/README.md
+ create mode 120000 docs/README.md
+ create mode 120000 docs/about.md
+ create mode 100644 mkdocs.yml
+ create mode 100644 site/2014/2014-02-24/index.html
+ create mode 100644 site/2014/2014-03-10/index.html
+ create mode 100644 site/2014/2014-04-14/index.html
+ create mode 100644 site/2014/2014-05-12/index.html
+ create mode 100644 site/2014/2014-06-09/index.html
+ create mode 100644 site/2014/2014-06-09/spyderlib/index.html
+ create mode 100644 site/2014/2014-07-14/index.html
+ create mode 100644 site/2014/2014-08-18/index.html
+ create mode 100644 site/2014/2014-09-08/index.html
+ create mode 100644 site/2014/2014-10-13/diy_home_monitoring/index.html
+ create mode 100644 site/2014/2014-10-13/gooey/index.html
+ create mode 100644 site/2014/2014-10-13/index.html
+ create mode 100644 site/2014/2014-11-10/index.html
+ create mode 100644 site/2014/2014-12-08/datamining/index.html
+ create mode 100644 site/2014/2014-12-08/index.html
+ create mode 100644 site/2014/index.html
+ create mode 100644 site/2015/2015-02-09/index.html
+ create mode 100644 site/2015/2015-03-09/index.html
+ create mode 100644 site/2015/2015-04-13/index.html
+ create mode 100644 site/2015/2015-04-13/libreoffice/index.html
+ create mode 100644 site/2015/2015-05-11/index.html
+ create mode 100644 site/2015/2015-05-11/libreoffice/index.html
+ create mode 100644 site/2015/2015-05-11/libreoffice/python version minimum/index.html
+ create mode 100644 site/2015/2015-05-11/libreoffice/pythonhouse/index.html
+ create mode 100644 site/2015/2015-05-11/matplotlib/index.html
+ create mode 100644 site/2015/2015-06-08/index.html
+ create mode 100644 site/2015/2015-07-13/index.html
+ create mode 100644 site/2015/2015-08-10/index.html
+ create mode 100644 site/2015/2015-09-14/index.html
+ create mode 100644 site/2015/2015-10-12/begins/index.html
+ create mode 100644 site/2015/2015-10-12/index.html
+ create mode 100644 site/2015/2015-10-12/plac/index.html
+ create mode 100644 site/2015/2015-10-12/quiz/index.html
+ create mode 100644 site/2015/2015-10-12/sys.argv/index.html
+ create mode 100644 site/2015/2015-11-09/index.html
+ create mode 100644 site/2015/2015-11-09/pelican/Pelican/index.html
+ create mode 100644 site/2015/2015-11-09/pyudev/index.html
+ create mode 100644 site/2015/2015-12-14/index.html
+ create mode 100644 site/2015/index.html
+ create mode 100644 site/2016/2016-02-08/index.html
+ create mode 100644 site/2016/2016-03-14/index.html
+ create mode 100644 site/2016/2016-04-11/index.html
+ create mode 100644 site/2016/2016-04-11/ncea presentation/index.html
+ create mode 100644 site/2016/2016-04-11/prime_number/index.html
+ create mode 100644 site/2016/2016-05-09/index.html
+ create mode 100644 site/2016/2016-05-09/python2to3experiences/python2to3migration/index.html
+ create mode 100644 site/2016/2016-06-13/index.html
+ create mode 100644 site/2016/2016-07-11/index.html
+ create mode 100644 site/2016/2016-08-08/index.html
+ create mode 100644 site/2016/2016-09-12/ian-python_art/index.html
+ create mode 100644 site/2016/2016-09-12/ian-tkinter_templates/index.html
+ create mode 100644 site/2016/2016-09-12/index.html
+ create mode 100644 site/2016/2016-10-10/index.html
+ create mode 100644 site/2016/2016-11-14/index.html
+ create mode 100644 site/2016/2016-11-14/web2py/index.html
+ create mode 100644 site/2016/2016-12-13/index.html
+ create mode 100644 site/2016/index.html
+ create mode 100644 site/2017/2017-02-13/index.html
+ create mode 100644 site/2017/2017-03-13/index.html
+ create mode 100644 site/2017/2017-04-10/ian/index.html
+ create mode 100644 site/2017/2017-04-10/index.html
+ create mode 100644 site/2017/2017-05-08/ian-client-server/index.html
+ create mode 100644 site/2017/2017-05-08/ian-google-talk/index.html
+ create mode 100644 site/2017/2017-05-08/index.html
+ create mode 100644 site/2017/2017-06-12/index.html
+ create mode 100644 site/2017/2017-07-10/index.html
+ create mode 100644 site/2017/2017-08-10/index.html
+ create mode 100644 site/2017/2017-09-11/index.html
+ create mode 100644 site/2017/2017-10-09/ian/index.html
+ create mode 100644 site/2017/2017-10-09/index.html
+ create mode 100644 site/2017/2017-11-13/index.html
+ create mode 100644 site/2017/2017-12-11/index.html
+ create mode 100644 site/2017/index.html
+ create mode 100644 site/2018/2018-02-12/index.html
+ create mode 100644 site/2018/2018-03-12/ian/index.html
+ create mode 100644 site/2018/2018-03-12/index.html
+ create mode 100644 site/2018/2018-04-09/index.html
+ create mode 100644 site/2018/2018-05-14/ian-jupiter/index.html
+ create mode 100644 site/2018/2018-05-14/ian-python-version/index.html
+ create mode 100644 site/2018/2018-05-14/index.html
+ create mode 100644 site/2018/2018-05-14/my_first_notebook/index.html
+ create mode 100644 site/2018/2018-06-11/index.html
+ create mode 100644 site/2018/2018-06-11/presentation/index.html
+ create mode 100644 site/2018/2018-07-09/index.html
+ create mode 100644 site/2018/2018-08-13/index.html
+ create mode 100644 site/2018/2018-09-10/index.html
+ create mode 100644 site/2018/2018-09-10/waitress/index.html
+ create mode 100644 site/2018/2018-10-08/fifo/index.html
+ create mode 100644 site/2018/2018-10-08/index.html
+ create mode 100644 site/2018/2018-11-12/index.html
+ create mode 100644 site/2018/2018-12-10/index.html
+ create mode 100644 site/2018/index.html
+ create mode 100644 site/2019/2019-02-11/index.html
+ create mode 100644 site/2019/2019-03-11/index.html
+ create mode 100644 site/2019/2019-03-11/local_bin/index.html
+ create mode 100644 site/2019/2019-03-11/rpi3_and_tensorflow/index.html
+ create mode 100644 site/2019/2019-04-08/index.html
+ create mode 100644 site/2019/2019-05-13/index.html
+ create mode 100644 site/2019/2019-06-10/bonobo/index.html
+ create mode 100644 site/2019/2019-06-10/bubbles/index.html
+ create mode 100644 site/2019/2019-06-10/data/index.html
+ create mode 100644 site/2019/2019-06-10/ian/index.html
+ create mode 100644 site/2019/2019-06-10/index.html
+ create mode 100644 site/2019/2019-06-10/pandas/index.html
+ create mode 100644 site/2019/2019-06-10/petl/index.html
+ create mode 100644 site/2019/2019-07-08/index.html
+ create mode 100644 site/2019/2019-07-08/jupyter_kernels/index.html
+ create mode 100644 site/2019/2019-07-08/pep484_type_hinting/index.html
+ create mode 100644 site/2019/2019-08-12/index.html
+ create mode 100644 site/2019/index.html
+ create mode 100644 site/404.html
+ create mode 100644 site/about/index.html
+ create mode 100644 site/assets/fonts/font-awesome.css
+ create mode 100644 site/assets/fonts/material-icons.css
+ create mode 100644 site/assets/fonts/specimen/FontAwesome.ttf
+ create mode 100644 site/assets/fonts/specimen/FontAwesome.woff
+ create mode 100644 site/assets/fonts/specimen/FontAwesome.woff2
+ create mode 100644 site/assets/fonts/specimen/MaterialIcons-Regular.ttf
+ create mode 100644 site/assets/fonts/specimen/MaterialIcons-Regular.woff
+ create mode 100644 site/assets/fonts/specimen/MaterialIcons-Regular.woff2
+ create mode 100644 site/assets/images/favicon.png
+ create mode 100644 site/assets/images/icons/bitbucket.1b09e088.svg
+ create mode 100644 site/assets/images/icons/github.f0b8504a.svg
+ create mode 100644 site/assets/images/icons/gitlab.6dd19c00.svg
+ create mode 100644 site/assets/javascripts/application.c648116f.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.da.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.de.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.du.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.es.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.fi.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.fr.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.hu.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.it.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.ja.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.jp.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.multi.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.nl.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.no.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.pt.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.ro.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.ru.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.stemmer.support.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.sv.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.th.js
+ create mode 100644 site/assets/javascripts/lunr/lunr.tr.js
+ create mode 100644 site/assets/javascripts/lunr/tinyseg.js
+ create mode 100644 site/assets/javascripts/lunr/wordcut.js
+ create mode 100644 site/assets/javascripts/modernizr.74668098.js
+ create mode 100644 site/assets/stylesheets/application-palette.a8b3c06d.css
+ create mode 100644 site/assets/stylesheets/application.30686662.css
+ create mode 100644 site/index.html
+ create mode 100644 site/search/search_index.json
+ create mode 100644 site/sitemap.xml
+ create mode 100644 site/sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings$ 
+(venv7) ian@X200:~/hampug-website/meetings$ git push -u origin master
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+Counting objects: 502, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (329/329), done.
+Writing objects: 100% (502/502), 821.25 KiB | 3.01 MiB/s, done.
+Total 502 (delta 115), reused 0 (delta 0)
+remote: Resolving deltas: 100% (115/115), completed with 1 local object.
+To https://github.com/irsbugs/meetings.git
+   89eef5f..5f28fbd  master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+(venv7) ian@X200:~/hampug-website/meetings$ 
 
 
-    pass
+===
 
-# Stuff long-winded constants here...
-# The template for building the mkdocs.yml file
-TEMPLATE = """site_name: HamPUG
-docs_dir: meetings  # Source files. default is docs
-site_dir: docs      # Website files. (Temporary) Default is site.
-                    # Website files are later rsync'ed to meetings/docs
 
-# The material theme uses a different search from the default mkdocs theme
-theme: 
-    name: 'material'  # default is 'mkdocs' theme
-    palette:
-        primary: 'indigo'
-        accent: 'indigo'
+(venv7) ian@X200:~/hampug-website/meetings$ mkdocs gh-deploy
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+WARNING -  Version check skipped: No version specificed in previous deployment. 
+INFO    -  Copying '/home/ian/hampug-website/meetings/site' to 'gh-pages' branch and pushing to GitHub. 
+Username for 'https://github.com': 
 
-# Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
-# Exclude the /docs/ folder (the website) in the meetings source folder
-# Since meetings is the source, then just need doc/* to exclude
-# This is later used to hold the website via:
-# rsync -r docs/ meetings/docs/ 
-# Exclude: 
-#   Impress presentation files (.opd) 
-#   Jupyter Notebook (.ipynb)
-# '- search' needs to be added to the plugins list.
 
-plugins:
-    - exclude:
-        glob:
-            - docs/* 
-            - "*.odp"
-            - "*.ipynb"
-            - "*.yml"
-            - about.md
-    - search:
+But on web-browser: https://irsbugs.github.io/meetings/
+get 404
+
+
+
+Created gh-pages
+
+===
+
+(venv7) ian@X200:~/hampug-website/meetings$ mkdocs gh-deploy
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+WARNING -  Version check skipped: No version specificed in previous deployment. 
+INFO    -  Copying '/home/ian/hampug-website/meetings/site' to 'gh-pages' branch and pushing to GitHub. 
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+ERROR   -  Failed to deploy to GitHub with error: 
+To https://github.com/irsbugs/meetings.git
+ ! [rejected]        gh-pages -> gh-pages (non-fast-forward)
+error: failed to push some refs to 'https://github.com/irsbugs/meetings.git'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. Check out this branch and integrate the remote changes
+hint: (e.g. 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+ 
+
+===
+
+(venv7) ian@X200:~/hampug-website/meetings$ git pull
+From https://github.com/irsbugs/meetings
+ * [new branch]      gh-pages   -> origin/gh-pages
+Already up to date.
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+
+
+(venv7) ian@X200:~/hampug-website/meetings$ mkdocs gh-deploy
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+INFO    -  Copying '/home/ian/hampug-website/meetings/site' to 'gh-pages' branch and pushing to GitHub. 
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+INFO    -  Your documentation should shortly be available at: https://irsbugs.github.io/meetings/ 
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+(venv7) ian@X200:~/hampug-website/meetings$ cd docs
+(venv7) ian@X200:~/hampug-website/meetings/docs$ rm -r *
+(venv7) ian@X200:~/hampug-website/meetings/docs$ cd ..
+(venv7) ian@X200:~/hampug-website/meetings$ rmdir docs
+(venv7) ian@X200:~/hampug-website/meetings$ ls
+2014  2015  2016  2017  2018  2019  about.md  mkdocs-auto  mkdocs-sym-auto  mkdocs.yml  README.md  site
+(venv7) ian@X200:~/hampug-website/meetings$ cd site
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+2014  2015  2016  2017  2018  2019  404.html  about  assets  index.html  search  sitemap.xml  sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+2014  2015  2016  2017  2018  2019  404.html  about  assets  index.html  search  sitemap.xml  sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings/site$ rm -r *
+(venv7) ian@X200:~/hampug-website/meetings/site$ ls
+(venv7) ian@X200:~/hampug-website/meetings/site$ cd ..
+(venv7) ian@X200:~/hampug-website/meetings$ rmdir site
+(venv7) ian@X200:~/hampug-website/meetings$ ls
+2014  2015  2016  2017  2018  2019  about.md  mkdocs-auto  mkdocs-sym-auto  mkdocs.yml  README.md
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+ delete mode 100644 site/sitemap.xml
+ delete mode 100644 site/sitemap.xml.gz
+(venv7) ian@X200:~/hampug-website/meetings$ git push -u origin master
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+Counting objects: 3, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 780 bytes | 780.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/irsbugs/meetings.git
+   21a7d1f..17f6da0  master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
+===
+
+(venv7) ian@X200:~/hampug-website/meetings$ python3 mkdocs-sym-auto
+Python3 program: mkdocs-sym-auto
+Version: 0.1
+Launched from: /home/ian/hampug-website/meetings/
+Contains .git repository: True
+
+Folders ignored as they contain no markdown files:
+
+
+Total markdown files that do not start with # : 0
+
+Creation of the directory /home/ian/hampug-website/meetings/docs/ failed
+Creation of the directory /home/ian/hampug-website/meetings/docs/2018/2018-06-11/ failed
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+About to proceed with git update. Do you want to continue? [Y/n]: y
+mkdocs gh-deploy
+INFO    -  Cleaning site directory 
+INFO    -  Building documentation to directory: /home/ian/hampug-website/meetings/site 
+INFO    -  Copying '/home/ian/hampug-website/meetings/site' to 'gh-pages' branch and pushing to GitHub. 
+Username for 'https://github.com': irsbugs
+Password for 'https://irsbugs@github.com': 
+INFO    -  Your documentation should shortly be available at: https://irsbugs.github.io/meetings/ 
+returncode: 0
+Removing folder: docs
+Removing folder: site
+(venv7) ian@X200:~/hampug-website/meetings$ 
+
 
 """
-
-INTRO = """
-Welcome to the program '{}' version {}.
-This program is for creating a Github project website for:
-{}.
-Their Github account is: {}
-The specific repository is: '{}'.
-The created website will have the URL: {}
-
-It is assumed that the current document layout on Github is in a sorted 
-fashion. The website navigation will be based on a sort of the Github
-repository. 
-
-A requirement is that all markdown documents commence the first
-line with a single hash, '#', and space, followed by a brief title. This
-title is used in the website navigation.
-
-This program assumes that you have a local git repository called '{}'
-and that this program is being run from that repository. For example your
-local folders may be ~/hampug-website/meetings/
-
-Prerequisites:
-0. This program is already in the top level Github meetings repository.
-1. Run this program from a virtual environment which includes:
-    o Python3.5 or higher.
-    o mkdocs version 1.0.4 or higher.
-    o mkdocs-exclude 1.0.2 or higher. Plugin to exclude files or folders.
-    o mkdocs-material 4.4.2 or higher. Theme plugin
-    o git version 2.17.1 or higher.
-2. In the {} Github repository {} 'Clone or Download' the repository so that 
-    it becomes one of your Github repositories.
-3. Create a local folder. E.g. $ mkdir github-website
-4. Change directory to that folder. E.g. $ cd github-website
-5. Clone Github to the local directory
-    $ git cloan https://github.com/MY_GITHUB_ACCOUNT/{}.git
-    This will create the folder {} which will be a git repository with a .git
-    folder off it.
-6. Set default to meetings. E.g. cd meetings.
-7. Run this program. From this meetings directory.
-8. The mkdocs.yml file and the /docs folder containing the website are placed
-    into the directory above meetings.
-9. Execute mkdocs commands from this directory as follows:
-    (venv) ian:~/website/meetings$ cd .. ; mkdocs build ; cd meetings
-    INFO    -  Cleaning site directory 
-    INFO    -  Building documentation to directory: /home/ian/meetings/docs 
-
-The program will do the following: 
-1. Review the '{}' repository and locate all markdown files.
-2. Check all markdown files meet the 'first line' requirement.
-3. Build the nav: structure.
-4. Build mkdocs.yml which will be placed folder up one level in: {}.
-5. Up one level create the folder for the website: {}
-6. Second line requirment is "Links: github" 
-7. Run mkdocs to build the website
-8. Run rsync to move the website into the respository off the /docs folder
-
-When the program terminates you may then:
-1. Test the website with mkdocs serve
-2. Push the .git repository to Github. The changes will be the /docs folder.
-3. Test the updated website at: {}
-""".format(sys.argv[0], VERSION, ORG, GITHUB, REPO_DIR, URL, REPO_DIR, 
-GITHUB, REPO_DIR, REPO_DIR, REPO_DIR, REPO_DIR, TOP_DIR, SITE, URL)
-
-
-if __name__=="__main__":
-    main()
-
-
-"""
-Notes:
-https://docs.python.org/3/library/glob.html
->>> import glob
->>> dir(glob)
-['__all__', '__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__spec__', '_glob0', '_glob1', '_glob2', '_iglob', '_ishidden', '_isrecursive', '_iterdir', '_rlistdir', 'escape', 'fnmatch', 'glob', 'glob0', 'glob1', 'has_magic', 'iglob', 'magic_check', 'magic_check_bytes', 'os', 're']
->>> 
-
-If recursive is true, the pattern “**” will match any files and zero or more directories and subdirectories. If the pattern is followed by an os.sep, only directories and subdirectories match.
-Changed in version 3.5: Support for recursive globs using “**”.
-
-https://stackoverflow.com/questions/3964681/find-all-files-in-a-directory-with-extension-txt-in-python
-
-You can use glob:
-
-import glob, os
-os.chdir("/mydir")
-for file in glob.glob("*.txt"):
-    print(file)
-
-or simply os.listdir:
-
-import os
-for file in os.listdir("/mydir"):
-    if file.endswith(".txt"):
-        print(os.path.join("/mydir", file))
-
-or if you want to traverse directory, use os.walk:
-
-import os
-for root, dirs, files in os.walk("/mydir"):
-    for file in files:
-        if file.endswith(".txt"):
-             print(os.path.join(root, file))
-
-
-for file in [f for f in os.listdir('/mydir') if f.endswith('.txt')]:
-
-"""
-

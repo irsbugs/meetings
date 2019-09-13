@@ -1,5 +1,5 @@
 # 2014-08-18
-#### 7
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-08-18/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-08-18/) 
 
 ## Virtualenv and Setuptool
 
@@ -23,3 +23,5 @@ Deprecated since version 3.6: pyvenv was the recommended tool for creating virtu
 environments for Python 3.3 and 3.4, and is deprecated in Python 3.6.
 
 See: https://docs.python.org/3/library/venv.html
+
+M7

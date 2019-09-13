@@ -1,4 +1,5 @@
 # 2015
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2015/README.md) or [Website](https://irsbugs.github.io/meetings/2015/) 
 
 Meetings of the Hamilton Python Users Group held in 2015 on:
 

@@ -1,5 +1,5 @@
 # 2014-04-14
-#### 3
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-04-14/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-04-14/) 
 
 ## Introduction
 
@@ -27,3 +27,5 @@ Useful links
 * [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/)
     * `sudo pip install BeautifulSoup`
 * [R wordcloud library](http://cran.r-project.org/web/packages/wordcloud/wordcloud.pdf)
+
+M3

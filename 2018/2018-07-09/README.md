@@ -1,5 +1,5 @@
 # 2018-07-09
-#### 50
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-07-09/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-07-09/) 
 
 ## Python Panda
 **Gary Buczma**
@@ -17,3 +17,5 @@ Click on the *launch binder* icon to launch Binder's Jupyter server to run the *
 Clic on the *launch binder* icon to launch Binder's Jupyter server to run the *GeoPANDAS.ipynb* file...
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2018%2F2018-07-09%2FGeoPANDAS.ipynb)
+
+M50

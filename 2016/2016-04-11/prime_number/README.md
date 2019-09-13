@@ -1,5 +1,5 @@
 # Prime number
-
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-04-11/prime_number/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-04-11/prime_number/) 
 
 `prime_number_locater.py` is an example program designed to meet the
 specification of the NCEA Level3 Digital Technologies Unit 91637 titled

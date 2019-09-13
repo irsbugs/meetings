@@ -1,5 +1,5 @@
 # 2016-03-14
-#### 24
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2016/2016-03-14/README.md) or [Website](https://irsbugs.github.io/meetings/2016/2016-03-14/) 
 
 ## An Introduction to Python.
 
@@ -50,3 +50,5 @@ The ipynb presentation by Lawrence may be launched by binder by clicking on the 
 The ipynb version 4 presentation by Lawrence may be launched by binder by clicking on the icon below
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/HamPUG/meetings/master?filepath=2016%2F2016-03-14%2Fldo%2FPython%20Intro%20Talk%20v4.ipynb)
+
+M24

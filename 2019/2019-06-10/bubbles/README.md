@@ -1,4 +1,5 @@
 # bubbles
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2019/2019-06-10/bubbles/README.md) or [Website](https://irsbugs.github.io/meetings/2019/2019-06-10/bubbles/) 
 
 Bubbles is a Python ETL Framework and set of tools. It can be used for
 processing, auditing and inspecting data. Focus is on understandability and

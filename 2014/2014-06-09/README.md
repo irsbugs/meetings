@@ -1,5 +1,5 @@
 # 2014-06-09
-#### 5
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-06-09/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-06-09/) 
 
 ## Python Integrated Development Environment Presentations
  
@@ -12,3 +12,5 @@ The sub-folder *spyderlib* contains a *README.md* and a *screenshot.png* file fo
 The file *Eric Circle Presentation v3.odp* is the slide show presented by Ian Stewart.
 
 The file *Eric Circle Presentation - Code.tar.gz* contains all the files that are discussed in the presentation.
+
+M5

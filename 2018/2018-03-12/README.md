@@ -1,5 +1,5 @@
 # 2018-03-12
-#### 46
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2018/2018-03-12/README.md) or [Website](https://irsbugs.github.io/meetings/2018/2018-03-12/) 
 
 ## Introduction to Python
 **Lawrence D'Oliveiro**
@@ -17,3 +17,5 @@ Click on the *launch binder* icon to run the ipynb file in Binder's Jupyter serv
 Ian delivered a presentation on Installing Python on Windows
 
 Refer to the README.md in the */ian/* folder for more details.
+
+M46

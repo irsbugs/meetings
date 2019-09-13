@@ -1,4 +1,5 @@
 # Spyder 
+Links: [Github](https://github.com/irsbugs/meetings/blob/master/2014/2014-06-09/spyderlib/README.md) or [Website](https://irsbugs.github.io/meetings/2014/2014-06-09/spyderlib/) 
 
 ## First impressions
 
