@@ -587,8 +587,8 @@ site_dir: {}      # Temp website files until mkdocs gh-deploy performed.
 theme:
     name: 'material'  # default is 'mkdocs' theme
     palette:
-        primary: 'indigo'
-        accent: 'indigo'
+        primary: 'blue'  # 'indigo'
+        accent: 'light blue'   # 'indigo'
 
 # Valid values for 'material' palette colours are: 
 # red, pink, purple, deep purple, indigo, blue, light blue, cyan, teal, 
@@ -630,8 +630,8 @@ site_dir: site      # Website files. (Temporary) Default is site.
 theme: 
     name: 'material'  # default is 'mkdocs' theme
     palette:
-        primary: 'indigo'
-        accent: 'indigo'
+        primary: 'blue'  # 'indigo'
+        accent: 'light blue'   # 'indigo'
 
 # Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
 # Exclude the /docs/ folder (the website) in the meetings source folder
