@@ -38,7 +38,8 @@ VERSION = str(0.1)
 REPO_DIR = "meetings"
 
 # Use mkdocs default directory's docs and site. Used in yaml config file.
-SITE_NAME = "HamPUG"
+#SITE_NAME = "HamPUG"
+SITE_NAME = "Hamilton Python Users Group"
 DOCS_DIR = "docs"  # mkdocs source files. 
 SITE_DIR = "site"  # mkdocs website 
 # The contents of the above folders are excluded from inclusion of input files 
