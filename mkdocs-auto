@@ -587,8 +587,8 @@ site_dir: {}      # Temp website files until mkdocs gh-deploy performed.
 theme:
     name: 'material'  # default is 'mkdocs' theme
     palette:
-        primary: 'blue'  # 'indigo'
-        accent: 'blue'   # 'indigo'
+        primary: 'indigo'
+        accent: 'indigo'
 
 # Valid values for 'material' palette colours are: 
 # red, pink, purple, deep purple, indigo, blue, light blue, cyan, teal, 
@@ -596,6 +596,7 @@ theme:
 # brown, grey, blue grey and white. 
 # The last four colors can only be used as a primary color.
 # Default colour is indigo
+# With blue then mouse over link doesn't change lightness of colour
 
 
 # Exclude plugin: https://github.com/apenwarr/mkdocs-exclude
