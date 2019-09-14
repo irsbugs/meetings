@@ -54,12 +54,13 @@ URL = "https://hampug/github.io/meetings/"
 # Create the Link prefixes. 
 # NOTE: No https:// at beginning, and No / at end
 # (https://github.com/irsbugs/meetings/blob/master/2014/2014-02-24/README.md)
-GITHUB_LINK_PREFIX = ("github.com{}{}{}meetings{}blob{}master"
-        .format(os.sep, GITHUB_ACCOUNT, os.sep, os.sep, os.sep))
+GITHUB_LINK_PREFIX = ("github.com{}{}{}{}{}blob{}master"
+         .format(os.sep, GITHUB_ACCOUNT, os.sep, REPO_DIR, os.sep, os.sep))
 
 # (https://irsbugs.github.io/meetings/2014/2014-02-24/)
-WEBSITE_LINK_PREFIX = ("{}.github.io{}meetings"
-        .format(GITHUB_ACCOUNT, os.sep))
+WEBSITE_LINK_PREFIX = ("{}.github.io{}{}"
+        .format(GITHUB_ACCOUNT, os.sep, REPO_DIR))
+
 
 HTTP_PREFIX =  "(https:{}{}".format(os.sep, os.sep)
 # Force launching the program from repo directory.
