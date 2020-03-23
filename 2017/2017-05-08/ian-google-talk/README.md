@@ -67,7 +67,7 @@ Mplayer may also need to be installed
 
 Update - March 2020): It is possible that Mpv is now a better option than Mplayer. 
 
-TODD: Install Mpv and then change the source code to use Mpv instead of Mplayer. E.g.
+TODO: Install Mpv and then change the source code to use Mpv instead of Mplayer. E.g.
 
 `$ mpv --no-video --really-quiet yakety_yak_solo.mp3` 
 
