@@ -59,7 +59,18 @@ This presentation was delived using this environment:
 ## Installation
 To install the python uno bridge to control the LibreOffice Impress slide show.
 
-$ sudo apt-get install python3-uno
+`$ sudo apt-get install python3-uno`
+
+Mplayer may also need to be installed
+
+`$ sudo apt install mplayer`
+
+Update - March 2020): It is possible that Mpv is now a better option than Mplayer. 
+
+TODD: Install Mpv and then change the source code to use Mpv instead of Mplayer. E.g.
+
+`$ mpv --no-video --really-quiet yakety_yak_solo.mp3` 
+
 
 ## Tar file distribution
 
