@@ -65,7 +65,7 @@ Mplayer may also need to be installed
 
 `$ sudo apt install mplayer`
 
-Update - March 2020): It is possible that Mpv is now a better option than Mplayer. 
+Update - March 2020: It is possible that Mpv is now a better option than Mplayer. 
 
 TODO: Install Mpv and then change the source code to use Mpv instead of Mplayer. E.g.
 
